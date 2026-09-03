@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Espace professeur — coréen avec Jieun</title>
+<meta name="color-scheme" content="light">
+<meta name="robots" content="noindex">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+  <symbol id="fleur" viewBox="0 0 26 26">
+    <circle cx="13" cy="13" r="3.4"/>
+    <circle cx="13" cy="4.2" r="3" opacity=".7"/>
+    <circle cx="21.4" cy="10.2" r="3" opacity=".7"/>
+    <circle cx="18.2" cy="21" r="3" opacity=".7"/>
+    <circle cx="7.8" cy="21" r="3" opacity=".7"/>
+    <circle cx="4.6" cy="10.2" r="3" opacity=".7"/>
+  </symbol>
+</defs></svg>
+
+<div class="app">
+
+  <header class="top">
+    <a class="marque" href="prof.html">
+      <svg width="26" height="26" aria-hidden="true"><use href="#fleur" fill="currentColor"></use></svg>
+      <span>
+        <span class="nm">Espace professeur</span>
+        <span class="kr">지은 선생님</span>
+      </span>
+    </a>
+    <div class="outils">
+      <span class="badge" id="badgeMode"></span>
+      <span style="flex:1"></span>
+      <span class="pn" id="profQui" hidden></span>
+      <button type="button" class="bt sec" id="sortir" hidden>Se déconnecter</button>
+    </div>
+  </header>
+
+  <!-- ------------------------------------------------ connexion -->
+  <div class="accueil" id="connexion" hidden>
+    <h1>Connexion</h1>
+    <p class="intro" id="aideMode"></p>
+    <form id="formCo" class="form-co">
+      <label class="champ"><span class="lbl">Adresse email</span>
+        <input type="email" id="coEmail" autocomplete="username" required></label>
+      <label class="champ"><span class="lbl">Mot de passe</span>
+        <input type="password" id="coMdp" autocomplete="current-password"></label>
+      <p class="erreur" id="erreurCo" hidden></p>
+      <button type="submit" class="bt">Entrer</button>
+    </form>
+  </div>
+
+  <!-- ------------------------------------------------- atelier -->
+  <div class="shell" id="atelier" hidden>
+    <aside class="side">
+      <section>
+        <h2>Élève</h2>
+        <select id="choixEleve" class="select"></select>
+        <div id="lienEleve"></div>
+      </section>
+      <section>
+        <h2>Ses leçons</h2>
+        <ul class="lecons pile" id="listeLecons"></ul>
+        <button type="button" class="bt p" id="nouvelle">Nouvelle leçon</button>
+        <button type="button" class="bt sec p" id="voirResultats">Ses résultats</button>
+      </section>
+    </aside>
+
+    <main class="contenu" id="editeur"></main>
+  </div>
+
+</div>
+
+<script src="assets/config.js"></script>
+<script src="assets/data-local.js"></script>
+<script src="assets/base.js"></script>
+<script src="assets/prof.js"></script>
+</body>
+</html>

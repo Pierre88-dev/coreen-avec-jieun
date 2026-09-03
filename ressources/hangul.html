@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hangul — référence complète</title>
+<style>
+  :root{
+    --paper:#F1F3F2;
+    --card:#FFFFFF;
+    --ink:#0F1417;
+    --ink-2:#5A646B;
+    --line:#D6DBD9;
+    --blue:#1B4FD8;
+    --blue-soft:#E8EDFC;
+    --red:#C8102E;
+    --red-soft:#FBE9EB;
+    --hit:#FFF2A8;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+    --kr:"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic","Nanum Gothic",sans-serif;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;background:var(--paper);color:var(--ink);
+    font-family:var(--sans);font-size:16px;line-height:1.45;
+    padding-bottom:64px;
+  }
+  /* ---------- barre de composition (sticky) ---------- */
+  .bar{
+    position:sticky;top:0;z-index:50;
+    background:rgba(241,243,242,.94);
+    backdrop-filter:saturate(180%) blur(12px);
+    -webkit-backdrop-filter:saturate(180%) blur(12px);
+    border-bottom:1px solid var(--line);
+    padding:10px 14px 8px;
+  }
+  .bar-row{display:flex;gap:8px;align-items:center}
+  .field{position:relative;flex:1}
+  .field input{
+    width:100%;padding:11px 38px 11px 13px;
+    font-family:var(--mono);font-size:16px;letter-spacing:.02em;
+    color:var(--ink);background:var(--card);
+    border:1.5px solid var(--line);border-radius:12px;outline:none;
+  }
+  .field input:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-soft)}
+  .field input::placeholder{color:#9AA3A8;letter-spacing:0}
+  .clear{
+    position:absolute;right:6px;top:50%;transform:translateY(-50%);
+    width:28px;height:28px;border:0;border-radius:50%;
+    background:transparent;color:var(--ink-2);font-size:19px;line-height:1;cursor:pointer;
+    display:none;
+  }
+  .clear.on{display:block}
+  /* résultat de composition */
+  .compose{margin-top:8px;display:none;max-height:34vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .compose.on{display:block}
+  .blocks{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start}
+  .gap{width:14px;flex:0 0 14px}
+  .blk{
+    background:var(--card);border:1.5px solid var(--ink);border-radius:12px;
+    padding:6px 10px 7px;text-align:center;min-width:64px;
+  }
+  .blk .big{font-family:var(--kr);font-size:38px;line-height:1.1;font-weight:600}
+  .blk .parts{font-family:var(--kr);font-size:13px;color:var(--ink-2);margin-top:2px;white-space:nowrap}
+  .blk .say{font-family:var(--mono);font-size:12px;color:var(--blue);margin-top:1px}
+  .whole{
+    margin-top:8px;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;
+    font-size:13px;color:var(--ink-2)
+  }
+  .whole b{font-family:var(--kr);font-size:20px;color:var(--ink);font-weight:600}
+  .whole .say{font-family:var(--mono);color:var(--blue)}
+  .tip{margin-top:6px;font-size:11.5px;color:var(--ink-2);line-height:1.35}
+  .nope{margin-top:8px;font-size:13px;color:var(--red);font-family:var(--mono)}
+
+  /* ---------- en-tête ---------- */
+  header.top{padding:26px 16px 6px}
+  header.top h1{
+    margin:0;font-size:30px;line-height:1.02;letter-spacing:-.03em;font-weight:800;
+  }
+  .legend{display:flex;gap:3px;margin-top:12px}
+  .legend span{height:5px;flex:1;border-radius:3px}
+  header.top p{margin:10px 0 0;color:var(--ink-2);font-size:14px;max-width:34em}
+
+  /* ---------- sections ---------- */
+  section{
+    padding:16px 12px 18px;margin:26px 8px 0 10px;
+    background:var(--accbg,transparent);
+    border-left:5px solid var(--acc,var(--line));
+    border-radius:0 18px 18px 0;
+    scroll-margin-top:calc(var(--barh,150px) + 10px);
+  }
+  .chapter{
+    position:relative;overflow:hidden;border-radius:14px;margin-bottom:12px;
+    background:var(--card);border:1px solid var(--line);
+    padding:14px 15px 13px;
+  }
+  .chapter{display:flex;gap:13px;align-items:flex-start}
+  .chapter .ghost{
+    flex:0 0 46px;height:46px;border-radius:13px;background:var(--acc);color:#fff;
+    font-family:var(--kr);font-size:27px;font-weight:700;line-height:46px;text-align:center;
+  }
+  .chapter .body{min-width:0}
+  .chapter .kicker{
+    font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--acc);font-weight:700;
+  }
+  .chapter h2{margin:3px 0 0;font-size:21px;letter-spacing:-.025em;font-weight:800;line-height:1.05}
+  .chapter p{margin:5px 0 0;font-size:12.5px;color:var(--ink-2);max-width:25em;position:relative}
+  .chapter .n{
+    display:inline-block;margin-top:8px;font-family:var(--mono);font-size:10.5px;font-weight:700;
+    background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:2px 9px;color:var(--ink-2);
+  }
+  .c-v1{--acc:#1B4FD8;--accbg:#EDF1FD}
+  .c-v2{--acc:#6C3FC5;--accbg:#F2EDFB}
+  .c-c1{--acc:#0B6E8C;--accbg:#E9F3F7}
+  .c-c2{--acc:#C8102E;--accbg:#FBEBED}
+  .c-bloc{--acc:#0A7B62;--accbg:#E8F5F1}
+  .c-piege{--acc:#B57A00;--accbg:#FAF2DF}
+  /* navigation de chapitres */
+  .nav{display:flex;gap:6px;margin-top:8px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .nav::-webkit-scrollbar{display:none}
+  .nav button{
+    flex:0 0 auto;display:flex;align-items:center;gap:5px;
+    font-size:11.5px;font-weight:700;font-family:inherit;white-space:nowrap;cursor:pointer;
+    padding:5px 10px 5px 8px;border-radius:20px;border:1px solid var(--line);
+    background:var(--card);color:var(--ink-2);
+  }
+  .nav button i{width:7px;height:7px;border-radius:50%;flex:0 0 7px}
+  .nav button.active i{background:#fff !important}
+  .nav button.active{background:var(--acc);border-color:var(--acc);color:#fff}
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+  @media(min-width:620px){.grid{grid-template-columns:repeat(3,1fr)}}
+  @media(min-width:900px){.grid{grid-template-columns:repeat(4,1fr)}}
+  .card{
+    background:var(--card);border:1px solid var(--line);border-left:3px solid var(--acc);border-radius:12px;
+    padding:10px 11px 11px;scroll-margin-top:calc(var(--barh,150px) + 14px);position:relative;
+    transition:background .25s,border-color .25s,box-shadow .25s;
+  }
+  .card .jamo{font-family:var(--kr);font-size:44px;line-height:1;font-weight:700;color:var(--acc)}
+  .card .rr{
+    font-family:var(--mono);font-size:13px;font-weight:700;color:var(--acc);
+    background:var(--accbg);display:inline-block;padding:1px 8px;border-radius:6px;margin-top:6px;
+  }
+  .card .say{font-size:13px;margin-top:7px;color:var(--ink)}
+  .card .say em{font-style:normal;color:var(--ink-2)}
+  .card .fr{
+    margin-top:7px;font-size:12.5px;line-height:1.4;
+    padding:6px 8px;border-radius:8px;display:block;
+  }
+  .card .fr .ftag{
+    font-family:var(--mono);font-size:9px;font-weight:800;letter-spacing:.06em;
+    padding:2px 4px;border-radius:4px;display:inline-block;margin-right:5px;vertical-align:1px;
+  }
+  .card .fr.ok{background:#E9F5EC;color:#14532B}
+  .card .fr.ok .ftag{background:#1B6B33;color:#fff}
+  .card .fr.no{background:#FAF2DF;color:#6B4B00}
+  .card .fr.no .ftag{background:#B57A00;color:#fff}
+  .card .ex{
+    margin-top:9px;padding-top:8px;border-top:1px dashed var(--line);font-size:13px;
+  }
+  .card .ex b{font-family:var(--kr);font-size:19px;font-weight:600;margin-right:5px}
+  .card .ex i{font-style:normal;font-family:var(--mono);font-size:11.5px;color:var(--ink-2)}
+  .card .ex span{display:block;color:var(--ink-2);font-size:12px}
+  .card.hit{background:var(--hit);border-color:var(--ink);box-shadow:0 0 0 3px rgba(15,20,23,.12)}
+
+  /* ---------- construction ---------- */
+  .build{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--acc);border-radius:12px;padding:14px}
+  .build-row .glyph{color:var(--acc)}
+  .build .note{background:var(--accbg)}
+  .build-row{display:flex;gap:12px;align-items:center;padding:9px 0;border-bottom:1px dashed var(--line)}
+  .build-row:last-child{border-bottom:0}
+  .build-row .glyph{font-family:var(--kr);font-size:34px;font-weight:600;min-width:52px;text-align:center}
+  .build-row .txt{font-size:13.5px;color:var(--ink-2)}
+  .build-row .txt b{color:var(--ink);font-weight:700;display:block;font-size:13.5px}
+  .note{font-size:13px;color:var(--ink-2);margin-top:10px;padding:10px 12px;background:var(--blue-soft);border-radius:10px}
+  /* alertes + suggestions */
+  .warn{
+    margin-top:8px;padding:8px 10px;border-radius:10px;font-size:12.5px;line-height:1.4;
+    background:var(--red-soft);border:1px solid #F1C3C8;color:#8A1220;
+  }
+  .warn b{font-family:var(--mono);font-weight:700}
+  .warn .kr{font-family:var(--kr);font-size:15px}
+  .sugg{margin-top:8px}
+  .sugg-h{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);font-weight:700;margin-bottom:5px}
+  .sugg-item{
+    display:flex;gap:9px;align-items:center;width:100%;text-align:left;
+    background:var(--card);border:1px solid var(--line);border-radius:10px;
+    padding:5px 8px;margin-bottom:4px;cursor:pointer;color:inherit;font:inherit;
+  }
+  .sugg-item:active{border-color:var(--blue);background:var(--blue-soft)}
+  .sugg-item .kr{font-family:var(--kr);font-size:21px;font-weight:600;min-width:1.4em;text-align:center}
+  .sugg-item .meta{min-width:0;display:flex;flex-direction:column;gap:1px}
+  .sugg-item .meta .rrs{font-family:var(--mono);font-size:12.5px;color:var(--blue)}
+  .sugg-item .meta .why{font-size:11px;color:var(--ink-2);line-height:1.3}
+  .sugg-item .tag{
+    margin-left:auto;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:800;
+    padding:3px 6px;border-radius:5px;white-space:nowrap;
+  }
+  .tag.same{background:#E4F3E8;color:#1B6B33}
+  .tag.diff{background:var(--red-soft);color:var(--red)}
+  .tag.fix{background:#FFF0D6;color:#8A5A00}
+  /* mode test + hésitations */
+  .tools{display:flex;gap:7px;margin-top:8px;align-items:center}
+  .tools .nav{margin-top:0;flex:1 1 auto;min-width:0}
+  .tools .tbtn{flex:0 0 auto;background:var(--paper);box-shadow:-16px 0 12px 8px var(--paper)}
+  .tbtn{
+    font-size:12px;font-weight:700;padding:5px 10px;border-radius:20px;cursor:pointer;
+    border:1px solid var(--line);background:var(--card);color:var(--ink-2);
+  }
+  .tbtn.on{background:var(--ink);border-color:var(--ink);color:#fff}
+  .tools .count{font-family:var(--mono);font-size:11px;color:var(--ink-2);flex:0 0 auto}
+  body.mask .card .rr,body.mask .card .say,body.mask .card .fr,body.mask .card .ex{filter:blur(5px);opacity:.55;transition:filter .12s}
+  body.mask .card.rev .rr,body.mask .card.rev .say,body.mask .card.rev .fr,body.mask .card.rev .ex{filter:none;opacity:1}
+  body.mask .card{cursor:pointer}
+  .flag{
+    position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;
+    border:1px solid var(--line);background:var(--card);color:var(--ink-2);
+    font-size:13px;font-weight:800;line-height:1;cursor:pointer;padding:0;
+  }
+  .card.hes{border-color:#E0A100;box-shadow:inset 0 0 0 1px #E0A100}
+  .card.hes .flag{background:#E0A100;border-color:#E0A100;color:#fff}
+  .tray{
+    position:fixed;left:10px;right:10px;bottom:10px;z-index:60;display:none;
+    background:var(--ink);color:#fff;border-radius:14px;padding:10px 12px;
+    align-items:center;gap:10px;box-shadow:0 6px 20px rgba(0,0,0,.25);
+  }
+  .tray.on{display:flex}
+  .tray .lbl{font-size:12.5px;line-height:1.3;min-width:0}
+  .tray .lbl b{font-family:var(--kr);font-weight:600}
+  .tray button{
+    border:0;border-radius:9px;padding:7px 11px;font-size:12px;font-weight:700;cursor:pointer;
+    background:#fff;color:var(--ink);white-space:nowrap;
+  }
+  .tray button.ghost{background:transparent;color:#9AA3A8;padding:7px 4px}
+  #out{position:fixed;left:-9999px;top:0}
+  footer{padding:26px 16px 0;color:var(--ink-2);font-size:12px;font-family:var(--mono)}
+  @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.card{transition:none}}
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <div class="bar-row">
+    <div class="field">
+      <input id="q" type="text" inputmode="latin" autocomplete="off" autocorrect="off"
+             autocapitalize="off" spellcheck="false" placeholder="romanisation ou hangul…" aria-label="Recherche">
+      <button class="clear" id="clr" aria-label="Effacer">×</button>
+    </div>
+  </div>
+  <div class="tools">
+  <nav class="nav" id="nav">
+    <button type="button" data-go="ch1" style="--acc:#1B4FD8"><i style="background:#1B4FD8"></i>Voyelles</button>
+    <button type="button" data-go="ch2" style="--acc:#6C3FC5"><i style="background:#6C3FC5"></i>Composées</button>
+    <button type="button" data-go="ch3" style="--acc:#0B6E8C"><i style="background:#0B6E8C"></i>Consonnes</button>
+    <button type="button" data-go="ch4" style="--acc:#C8102E"><i style="background:#C8102E"></i>Tendues</button>
+    <button type="button" data-go="ch5" style="--acc:#0A7B62"><i style="background:#0A7B62"></i>Bloc</button>
+    <button type="button" data-go="ch6" style="--acc:#B57A00"><i style="background:#B57A00"></i>Pièges</button>
+  </nav>
+    <button class="tbtn" id="tmask">Test</button>
+    <span class="count" id="cnt"></span>
+  </div>
+  <div class="compose" id="compose"></div>
+
+</div>
+
+<header class="top">
+  <h1>Hangul complet<br>40 jamo</h1>
+  <div class="legend">
+    <span style="background:#1B4FD8"></span><span style="background:#6C3FC5"></span><span style="background:#0B6E8C"></span><span style="background:#C8102E"></span><span style="background:#0A7B62"></span><span style="background:#B57A00"></span>
+  </div>
+  <p>Tape une romanisation : elle se compose en blocs coréens en direct, avec les graphies voisines à ne pas confondre. Colle du hangul : il est décomposé en jamo. Un jamo isolé fait sauter la page sur sa carte.</p>
+</header>
+
+<section id="ch1" class="c-v1">
+  <div class="chapter c-v1"><span class="ghost">ㅏ</span><div class="body"><div class="kicker">chapitre 1</div><h2>Voyelles simples</h2><p>Le noyau de chaque bloc. Verticales (ㅏㅑㅓㅕㅣ) ou horizontales (ㅗㅛㅜㅠㅡ) — cette orientation décide de la mise en page du bloc.</p><span class="n">10 jamo</span></div></div>
+  <div class="grid" id="g-v1"></div>
+</section>
+
+<section id="ch2" class="c-v2">
+  <div class="chapter c-v2"><span class="ghost">ㅚ</span><div class="body"><div class="kicker">chapitre 2</div><h2>Voyelles composées</h2><p>Deux voyelles fondues en une. C'est ici que vivent les homophones : plusieurs graphies pour un son unique.</p><span class="n">11 jamo</span></div></div>
+  <div class="grid" id="g-v2"></div>
+</section>
+
+<section id="ch3" class="c-c1">
+  <div class="chapter c-c1"><span class="ghost">ㄱ</span><div class="body"><div class="kicker">chapitre 3</div><h2>Consonnes de base</h2><p>Leur son change selon la position : douce entre deux voyelles, sourde en finale de bloc.</p><span class="n">14 jamo</span></div></div>
+  <div class="grid" id="g-c1"></div>
+</section>
+
+<section id="ch4" class="c-c2">
+  <div class="chapter c-c2"><span class="ghost">ㄲ</span><div class="body"><div class="kicker">chapitre 4</div><h2>Consonnes tendues</h2><p>Gorge serrée, aucun souffle. Bonne nouvelle : le p, t, k français ne sont pas soufflés — ils tombent ici, pas sur ㅍㅌㅋ.</p><span class="n">5 jamo</span></div></div>
+  <div class="grid" id="g-c2"></div>
+</section>
+
+<section id="ch5" class="c-bloc">
+  <div class="chapter c-bloc"><span class="ghost">가</span><div class="body"><div class="kicker">chapitre 5</div><h2>Construction du bloc</h2><p>Où se place chaque jamo dans le carré. Une syllabe = un bloc, jamais plus.</p><span class="n">5 dispositions</span></div></div>
+  <div class="build">
+    <div class="build-row"><div class="glyph">가</div><div class="txt"><b>C + V verticale → côte à côte</b>ㄱ + ㅏ. Voyelles verticales : ㅏㅑㅓㅕㅣㅐㅔㅒㅖ</div></div>
+    <div class="build-row"><div class="glyph">고</div><div class="txt"><b>C + V horizontale → empilé</b>ㄱ + ㅗ. Voyelles horizontales : ㅗㅛㅜㅠㅡ</div></div>
+    <div class="build-row"><div class="glyph">과</div><div class="txt"><b>C + V composée → enveloppe</b>ㄱ + ㅘ : la consonne occupe le coin haut-gauche</div></div>
+    <div class="build-row"><div class="glyph">감</div><div class="txt"><b>C + V + C (batchim)</b>La finale se pose en bas, sur toute la largeur</div></div>
+    <div class="build-row"><div class="glyph">닭</div><div class="txt"><b>Finale double</b>Deux consonnes en bas ; une seule se prononce → [tak]</div></div>
+    <div class="note"><b>ㅇ</b> : muet en position initiale (아 = [a], simple support graphique), mais se prononce [ng] en finale (강 = [gang]). Un bloc commence toujours par une consonne — s'il n'y en a pas, on écrit ㅇ.</div>
+  </div>
+</section>
+
+<section id="ch6" class="c-piege">
+  <div class="chapter c-piege"><span class="ghost">ㅔ</span><div class="body"><div class="kicker">chapitre 6</div><h2>Sons identiques</h2><p>Graphies différentes, son unique. Impossible à départager à l'oreille : ça se mémorise mot par mot.</p><span class="n">3 séries</span></div></div>
+  <div class="build">
+    <div class="build-row"><div class="glyph">ㅐㅔ</div><div class="txt"><b>tous deux [è]</b>ae / e — même son aujourd'hui, seule l'orthographe diffère</div></div>
+    <div class="build-row"><div class="glyph">ㅒㅖ</div><div class="txt"><b>tous deux [yè]</b>yae / ye</div></div>
+    <div class="build-row"><div class="glyph">ㅙㅚㅞ</div><div class="txt"><b>tous trois [wè]</b>wae / oe / we — impossible à distinguer à l'oreille</div></div>
+    <div class="note">Ces séries ne se départagent qu'en mémorisant le mot, pas en écoutant. Ne perds pas de temps à chercher une nuance : il n'y en a plus.</div>
+  </div>
+</section>
+
+<div class="tray" id="tray">
+  <span class="lbl" id="traylbl"></span>
+  <button id="copy">Copier</button>
+  <button class="ghost" id="wipe">Vider</button>
+</div>
+<textarea id="out" readonly></textarea>
+
+<footer>40/40 jamo — 20/08/2026<br>
+Les lectures entre crochets sont des approximations écrites d'un son : elles cadrent la cible, elles ne la prouvent pas.
+Marque tes hésitations, copie la chaîne, et fais trancher les cas litigieux à l'oreille.</footer>
+
+<script>
+/* ============ données ============ */
+const V1=[
+ ["ㅏ","a","[a]","사랑","sarang","amour",1,"le <b>a</b> de « papa »"],
+ ["ㅑ","ya","[ya]","야구","yagu","baseball",1,"le <b>ya</b> de « il y a »"],
+ ["ㅓ","eo","[ò] bouche relâchée, lèvres <b>non</b> arrondies","어머니","eomeoni","mère",0,"n'existe pas : dis le <b>o</b> de « sorte » en gardant les lèvres <b>plates</b>"],
+ ["ㅕ","yeo","[yò] — y + ㅓ","여자","yeoja","femme",0,"n'existe pas : y + ㅓ, lèvres plates"],
+ ["ㅗ","o","[o fermé] — lèvres arrondies","고기","gogi","viande",1,"le <b>o</b> de « beau »"],
+ ["ㅛ","yo","[yo]","요리","yori","cuisine",1,"le <b>yo</b> de « yoyo »"],
+ ["ㅜ","u","[ou] — jamais le « u » français","우유","uyu","lait",1,"le <b>ou</b> de « loup »"],
+ ["ㅠ","yu","[you]","유리","yuri","verre",1,"le <b>you</b> de « youpi »"],
+ ["ㅡ","eu","[eu] lèvres tirées — pas le « eu » de « feu »","그림","geurim","dessin",0,"n'existe pas : dis « ou » en <b>écartant</b> les lèvres comme pour sourire"],
+ ["ㅣ","i","[i]","기차","gicha","train",1,"le <b>i</b> de « midi »"]
+];
+const V2=[
+ ["ㅐ","ae","[è]","개","gae","chien",1,"le <b>è</b> de « mère »"],
+ ["ㅒ","yae","[yè]","얘기","yaegi","conversation",1,"le <b>hie</b> de « hier »"],
+ ["ㅔ","e","[è] — identique à ㅐ","게","ge","crabe",1,"le <b>è</b> de « père »"],
+ ["ㅖ","ye","[yè] — identique à ㅒ","예","ye","oui (poli)",1,"le <b>hie</b> de « hier »"],
+ ["ㅘ","wa","[wa]","과일","gwail","fruit",1,"le <b>oi</b> de « moi »"],
+ ["ㅙ","wae","[wè]","왜","wae","pourquoi",1,"le <b>oue</b> de « ouest »"],
+ ["ㅚ","oe","[wè] — ne se lit PAS « o-i »","회사","hoesa","entreprise",1,"le <b>oue</b> de « ouest »"],
+ ["ㅝ","wo","[wò] — w + ㅓ, pas w + ㅗ","원","won","won (monnaie)",0,"n'existe pas : « ou » enchaîné sur ㅓ, lèvres plates à la fin"],
+ ["ㅞ","we","[wè] — identique à ㅙ et ㅚ","스웨터","seuweteo","pull",1,"le <b>oue</b> de « ouest »"],
+ ["ㅟ","wi","[wi]","뒤","dwi","derrière",1,"le mot <b>oui</b>"],
+ ["ㅢ","ui","[eu-i] en début de mot ; [i] après consonne (희망 → [himang]) ; [è] pour la particule 의","의사","uisa","médecin",0,"n'existe pas : ㅡ enchaîné très vite sur i, en un seul geste"]
+];
+const C1=[
+ ["ㄱ","g / k","[g] doux entre voyelles, [k] en finale","가방","gabang","sac",0,"entre le <b>g</b> de « gare » et le <b>c</b> de « car » — jamais soufflé"],
+ ["ㄴ","n","[n]","나무","namu","arbre",1,"le <b>n</b> de « banane »"],
+ ["ㄷ","d / t","[d] doux, [t] en finale","다리","dari","jambe, pont",0,"entre le <b>d</b> de « date » et le <b>t</b> de « table »"],
+ ["ㄹ","r / l","[r] battu entre voyelles, [l] en finale ; ㄹㄹ = [ll] long","라면","ramyeon","ramyeon",0,"ni « r » ni « l » français : le <b>r</b> battu de l'espagnol « pero », un seul coup de langue"],
+ ["ㅁ","m","[m]","물","mul","eau",1,"le <b>m</b> de « maman »"],
+ ["ㅂ","b / p","[b] doux, [p] en finale","바다","bada","mer",0,"entre le <b>b</b> de « bal » et le <b>p</b> de « pas »"],
+ ["ㅅ","s","[s] ; devient [ch] devant i / y","사과","sagwa","pomme",1,"le <b>s</b> de « sac » ; le <b>ch</b> de « chic » devant i"],
+ ["ㅇ","— / ng","muet en initiale, [ng] en finale","아기 · 강","agi · gang","bébé · fleuve",1,"le <b>ng</b> de « parking » en finale"],
+ ["ㅈ","j","[dj] entre deux voyelles ; en début de mot, plutôt un [tch] <b>sans</b> souffle","자다","jada","dormir",1,"le <b>dj</b> de « adjoint » — jamais le « j » de « jour »"],
+ ["ㅊ","ch","[tch] aspiré — souffle net","차","cha","thé, voiture",1,"le <b>tch</b> de « tchèque », plus un souffle"],
+ ["ㅋ","k","[k] aspiré","코","ko","nez",0,"le <b>c</b> de « car » suivi d'un souffle audible — le français n'aspire jamais"],
+ ["ㅌ","t","[t] aspiré","토마토","tomato","tomate",0,"le <b>t</b> de « table » suivi d'un souffle audible"],
+ ["ㅍ","p","[p] aspiré","팔","pal","bras, huit",0,"le <b>p</b> de « pas » suivi d'un souffle audible"],
+ ["ㅎ","h","[h] expiré, souvent presque muet entre voyelles","하늘","haneul","ciel",0,"muet en français : le <b>h</b> soufflé de l'anglais « hello »"]
+];
+const C2=[
+ ["ㄲ","kk","[k] tendu, sec, sans souffle","꿈","kkum","rêve",1,"le <b>c</b> de « cadeau » : le français ne souffle pas, ça tombe juste"],
+ ["ㄸ","tt","[t] tendu, sec","딸","ttal","fille",1,"le <b>t</b> de « table » prononcé à la française, sec"],
+ ["ㅃ","pp","[p] tendu, sec","빵","ppang","pain",1,"le <b>p</b> de « papa » prononcé à la française, sec"],
+ ["ㅆ","ss","[s] tendu, sifflant","쌀","ssal","riz (cru)",1,"le <b>ss</b> de « poisson », plus appuyé"],
+ ["ㅉ","jj","[dj] tendu, comprimé","짜다","jjada","salé",1,"le <b>tch</b> de « tchao », coupé net et sans souffle"]
+];
+
+function card(d,tense){
+  const [j,rr,say,ex,exrr,sens,frok,frtxt]=d;
+  const div=document.createElement("div");
+  div.className="card"+(tense?" tense":"");
+  div.dataset.rr=rr.replace(/\s|—|\//g,"|");
+  div.dataset.jamo=j;
+  div.innerHTML='<button class="flag" title="marquer comme hésitation">?</button>'+
+    '<div class="jamo">'+j+'</div>'+
+    '<div class="rr">'+rr+'</div>'+
+    '<div class="say">'+say+'</div>'+
+    '<div class="fr '+(frok?"ok":"no")+'"><span class="ftag">'+(frok?"FR":"≠")+'</span>'+frtxt+'</div>'+
+    '<div class="ex"><b>'+ex+'</b><i>'+exrr+'</i><span>'+sens+'</span></div>';
+  return div;
+}
+[["g-v1",V1,0],["g-v2",V2,0],["g-c1",C1,0],["g-c2",C2,1]].forEach(([id,arr,t])=>{
+  const g=document.getElementById(id);
+  arr.forEach(d=>g.appendChild(card(d,t)));
+});
+
+/* index romanisation -> carte */
+const IDX={};
+document.querySelectorAll(".card").forEach(c=>{
+  c.dataset.rr.split("|").filter(Boolean).forEach(k=>{ if(!IDX[k]) IDX[k]=c; });
+});
+
+/* ============ moteur RR -> Hangul ============ */
+const CHO=["g","kk","n","d","tt","r","m","b","pp","s","ss","","j","jj","ch","k","t","p","h"];
+const JUNG=["a","ae","ya","yae","eo","e","yeo","ye","o","wa","wae","oe","yo","u","wo","we","wi","yu","eu","ui","i"];
+const JONG=["","k","kk","ks","n","nj","nh","t","l","lk","lm","lp","ls","lt","lp","lh","m","p","ps","s","ss","ng","j","ch","k","t","p","h"];
+const JONG_ALT={g:1,d:7,r:8,b:17,l:8};
+const CHO_KR=["ㄱ","ㄲ","ㄴ","ㄷ","ㄸ","ㄹ","ㅁ","ㅂ","ㅃ","ㅅ","ㅆ","ㅇ","ㅈ","ㅉ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"];
+const JUNG_KR=["ㅏ","ㅐ","ㅑ","ㅒ","ㅓ","ㅔ","ㅕ","ㅖ","ㅗ","ㅘ","ㅙ","ㅚ","ㅛ","ㅜ","ㅝ","ㅞ","ㅟ","ㅠ","ㅡ","ㅢ","ㅣ"];
+const JONG_KR=["","ㄱ","ㄲ","ㄳ","ㄴ","ㄵ","ㄶ","ㄷ","ㄹ","ㄺ","ㄻ","ㄼ","ㄽ","ㄾ","ㄿ","ㅀ","ㅁ","ㅂ","ㅄ","ㅅ","ㅆ","ㅇ","ㅈ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"];
+/* sons approximatifs en français */
+const CHO_FR=["g","kk","n","d","tt","r","m","b","pp","s","ss","","dj","jj","tch","k","t","p","h"];
+const JUNG_FR=["a","è","ya","yè","ò","è","yò","yè","o","wa","wè","wè","yo","ou","wò","wè","wi","you","eu","eui","i"];
+const JONG_FR=["","k","k","k","n","n","n","t","l","k","m","p","l","l","p","l","m","p","p","t","t","ng","t","t","k","t","p","t"];
+
+const PALAT=[20,2,3,6,7,12,17];
+function choFR(ci,vi){
+  if(ci===9&&PALAT.includes(vi))return "ch";
+  if(ci===10&&PALAT.includes(vi))return "cch";
+  return CHO_FR[ci];
+}
+function choIdx(s){const i=CHO.indexOf(s);if(i>=0&&s!=="")return i;if(s==="l")return 5;return -1;}
+function jongIdx(s){if(JONG_ALT[s]!==undefined)return JONG_ALT[s];const i=JONG.indexOf(s);return i>0?i:-1;}
+
+function parseRR(raw){
+  const str=raw.toLowerCase().replace(/[^a-z]/g,"");
+  if(!str)return null;
+  const memo=new Map();
+  function go(pos){
+    if(pos>=str.length)return[];
+    if(memo.has(pos))return memo.get(pos);
+    let res=null;
+    const cands=[];
+    for(let L=2;L>=1;L--){const s=str.substr(pos,L);if(s.length===L&&choIdx(s)>=0)cands.push([choIdx(s),L]);}
+    cands.push([11,0]);
+    outer:
+    for(const [ci,cl] of cands){
+      for(let vl=3;vl>=1;vl--){
+        const v=str.substr(pos+cl,vl);
+        if(v.length!==vl)continue;
+        const vi=JUNG.indexOf(v);
+        if(vi<0)continue;
+        const after=pos+cl+vl;
+        let rest=go(after);
+        if(rest){res=[{ci,vi,ji:0}].concat(rest);break outer;}
+        for(let fl=1;fl<=2;fl++){
+          const f=str.substr(after,fl);
+          if(f.length!==fl)continue;
+          const ji=jongIdx(f);
+          if(ji<0)continue;
+          rest=go(after+fl);
+          if(rest){res=[{ci,vi,ji}].concat(rest);break outer;}
+        }
+      }
+    }
+    memo.set(pos,res);return res;
+  }
+  const out=go(0);
+  if(!out)return null;
+  return out.map(s=>Object.assign({},s,{
+    char:String.fromCharCode(0xAC00+(s.ci*21+s.vi)*28+s.ji),
+    parts:(s.ci===11?"ㅇ":CHO_KR[s.ci])+" + "+JUNG_KR[s.vi]+(s.ji?" + "+JONG_KR[s.ji]:""),
+    fr:choFR(s.ci,s.vi)+JUNG_FR[s.vi]+JONG_FR[s.ji]
+  }));
+}
+
+/* ============ 1. graphies non-RR ============ */
+const DIA={"ŏ":"eo","ŭ":"eu","ō":"o","ū":"u","ô":"o","û":"u","é":"e","è":"e","ê":"e","à":"a","ö":"oe"};
+function deDia(s){return s.toLowerCase().replace(/[ŏŭōūôûéèêàö]/g,c=>DIA[c]);}
+const RULES=[
+  [/ch['’]/g,"ch","ch' (McCune) s'écrit simplement ch en RR"],
+  [/k['’]/g,"k","k' (McCune) s'écrit simplement k en RR"],
+  [/t['’]/g,"t","t' (McCune) s'écrit simplement t en RR"],
+  [/p['’]/g,"p","p' (McCune) s'écrit simplement p en RR"],
+  [/woo/g,"u","« woo » est une graphie anglaise ; ㅜ s'écrit u"],
+  [/oo/g,"u","« oo » est une graphie anglaise ; ㅜ s'écrit u"],
+  [/ee/g,"i","« ee » est une graphie anglaise ; ㅣ s'écrit i"],
+  [/sh/g,"s","le coréen n'a pas de ㅅ+h : ㅅ devant i se prononce déjà [ch], mais s'écrit s"],
+  [/gg/g,"kk","la tendue ㄲ s'écrit kk en RR"],
+  [/dd/g,"tt","la tendue ㄸ s'écrit tt en RR"],
+  [/bb/g,"pp","la tendue ㅃ s'écrit pp en RR"],
+  [/kh/g,"k","ㅋ s'écrit k"],
+  [/th/g,"t","ㅌ s'écrit t"],
+  [/ph/g,"p","ㅍ s'écrit p"],
+  [/eui/g,"ui","ㅢ s'écrit ui en RR"]
+];
+const IMPOSSIBLE={
+  f:["ㅍ (p)","le coréen n'a pas de [f]"],
+  v:["ㅂ (b)","le coréen n'a pas de [v]"],
+  z:["ㅈ (j)","le coréen n'a pas de [z]"],
+  x:["ㅅ / ㄱㅅ","le coréen n'a pas de [x]"],
+  q:["ㅋ (k)","le coréen n'a pas de [q]"],
+  c:["ㅋ (k) ou ㅊ (ch)","« c » seul n'existe pas en RR"]
+};
+/* graphies qui composent quand même quelque chose, mais probablement pas ce qui était visé */
+const SOFT=[
+  [/oua/g,"wa","« oua » est la graphie française ; ㅘ s'écrit wa"],
+  [/oui/g,"wi","« oui » est la graphie française ; ㅟ s'écrit wi"],
+  [/ouo/g,"wo","« ouo » est la graphie française ; ㅝ s'écrit wo"],
+  [/oue/g,"we","« oue » est la graphie française ; ㅞ s'écrit we"],
+  [/ou/g,"u","« ou » est la graphie française ; ㅜ s'écrit u",t=>!/eo/.test(t)],
+  [/tch/g,"ch","« tch » est la graphie française ; ㅊ s'écrit ch"],
+  [/dj/g,"j","« dj » est la graphie française ; ㅈ s'écrit j"],
+  [/oi/g,"oe","« oi » se lit ㅗ+ㅣ en deux blocs ; la voyelle ㅚ s'écrit oe"],
+  [/ai/g,"ae","ㅐ s'écrit ae, pas ai"],
+  [/ei/g,"e","ㅔ s'écrit e, pas ei"]
+];
+function softAlt(s){
+  if(s.length>10)return null;
+  let cur=s,why=[];
+  for(const [re,rep,w,guard] of SOFT){
+    re.lastIndex=0;
+    if(guard&&!guard(cur))continue;
+    if(re.test(cur)){ const nx=cur.replace(re,rep); if(nx!==cur){cur=nx;why.push(w);} }
+  }
+  if(cur===s||!parseRR(cur))return null;
+  return {alt:cur,why:why.join(" · ")};
+}
+function normalize(raw){
+  let s=deDia(raw).replace(/[^a-z'’]/g,""),notes=[];
+  RULES.forEach(([re,rep,why])=>{ re.lastIndex=0; if(re.test(s)){ s=s.replace(re,rep); notes.push(why);} });
+  return {str:s,notes};
+}
+
+/* ============ 2. voisins trompeurs ============ */
+const V_HOMO=[[1,5],[3,7],[10,11,15]];
+const V_CONF=[
+  [4,8,"ㅓ [ò] lèvres non arrondies vs ㅗ [o] lèvres arrondies — le contraste est l'arrondi, pas l'ouverture"],
+  [13,18,"ㅜ [ou] vs ㅡ [eu neutre, lèvres tirées]"],
+  [9,14,"ㅘ [wa] = w+ㅏ vs ㅝ [wò] = w+ㅓ"],
+  [19,16,"ㅢ [eu-i enchaîné] vs ㅟ [wi]"],
+  [0,4,"ㅏ [a] vs ㅓ [ô]"],
+  [2,6,"ㅑ [ya] vs ㅕ [yô]"],
+  [12,17,"ㅛ [yo] vs ㅠ [you]"],
+  [18,4,"ㅡ [eu] lèvres tirées, langue haute vs ㅓ [ò] mâchoire ouverte"]
+];
+const C_FAM=[
+  [0,15,1,"ㄱ [g] · ㅋ [k aspiré, souffle] · ㄲ [k tendu, sec]"],
+  [3,16,4,"ㄷ [d] · ㅌ [t aspiré] · ㄸ [t tendu]"],
+  [7,17,8,"ㅂ [b] · ㅍ [p aspiré] · ㅃ [p tendu]"],
+  [12,14,13,"ㅈ [dj] · ㅊ [tch aspiré] · ㅉ [dj tendu]"],
+  [9,-1,10,"ㅅ [s] · ㅆ [s tendu, sifflant]"]
+];
+function toChar(s){return String.fromCharCode(0xAC00+(s.ci*21+s.vi)*28+s.ji);}
+function toRR(a){return a.map(s=>(s.ci===11?"":CHO[s.ci])+JUNG[s.vi]+JONG[s.ji]).join("");}
+function neighbours(syl){
+  const out=[],seen=new Set([toRR(syl)]);
+  function push(arr,tag,why,rank){
+    const rr=toRR(arr),kr=arr.map(toChar).join("");
+    if(seen.has(rr))return; seen.add(rr);
+    const back=parseRR(rr);
+    if(!back||back.map(toChar).join("")!==kr)return;
+    out.push({rr,kr,tag,why,rank});
+  }
+  syl.forEach((s,i)=>{
+    const swap=(k,v)=>{const c=syl.map(x=>Object.assign({},x));c[i][k]=v;return c;};
+    V_HOMO.forEach(g=>{ if(g.includes(s.vi)) g.filter(x=>x!==s.vi).forEach(x=>
+      push(swap("vi",x),"same","même son [ "+JUNG_FR[x]+" ] — seule l'orthographe change",0)); });
+    V_CONF.forEach(([a,b,why])=>{
+      if(s.vi===a) push(swap("vi",b),"diff",why,1);
+      else if(s.vi===b) push(swap("vi",a),"diff",why,1);
+    });
+    C_FAM.forEach(f=>{ const why=f[3];
+      if(f.slice(0,3).includes(s.ci)) f.slice(0,3).filter(x=>x>=0&&x!==s.ci).forEach(x=>
+        push(swap("ci",x),"diff",why,2)); });
+  });
+  return out.sort((a,b)=>a.rank-b.rank).slice(0,3);
+}
+
+/* ============ 3. recherche approchante ============ */
+const LEX=[];
+document.querySelectorAll(".card .ex").forEach(e=>{
+  e.querySelector("i").textContent.split("·").forEach(w=>{
+    w=w.trim(); if(w) LEX.push(w);
+  });
+});
+["annyeonghaseyo","gamsahamnida","juseyo","eolmayeyo","hwajangsil","jip","hakgyo","chingu",
+ "oppa","eonni","hyeong","nuna","eomma","appa","bap","maekju","soju","sikdang","taeksi","beoseu",
+ "yeok","joayo","aniyo","gim","bak","choe","i","seoul","busan"].forEach(w=>LEX.push(w));
+Object.keys(IDX).forEach(k=>LEX.push(k));
+function lev(a,b){
+  const m=[...Array(a.length+1)].map((_,i)=>[i,...Array(b.length).fill(0)]);
+  for(let j=0;j<=b.length;j++)m[0][j]=j;
+  for(let i=1;i<=a.length;i++)for(let j=1;j<=b.length;j++)
+    m[i][j]=Math.min(m[i-1][j]+1,m[i][j-1]+1,m[i-1][j-1]+(a[i-1]===b[j-1]?0:1));
+  return m[a.length][b.length];
+}
+function krOf(w){
+  if(IDX[w])return{kr:IDX[w].dataset.jamo,say:IDX[w].querySelector(".say").textContent};
+  const p=parseRR(w);
+  return p?{kr:p.map(s=>s.char).join(""),say:"["+p.map(s=>s.fr).join("·")+"]"}:null;
+}
+function fuzzy(s){
+  return [...new Set(LEX)].map(w=>({w,d:lev(s,w)}))
+    .filter(o=>o.d<=Math.max(1,Math.min(3,Math.ceil(s.length/2.5))))
+    .sort((a,b)=>a.d-b.d||a.w.length-b.w.length).slice(0,4);
+}
+
+/* ============ mode test + hésitations ============ */
+const KEY="coreen-hes-v1";
+let HES=[];
+function load(){ try{HES=JSON.parse(localStorage.getItem(KEY)||"[]");}catch(e){HES=[];} }
+function save(){ try{localStorage.setItem(KEY,JSON.stringify(HES));}catch(e){} }
+function jamoRR(c){ return (c.dataset.rr||"").split("|").filter(Boolean)[0]||""; }
+function refreshHes(){
+  document.querySelectorAll(".card").forEach(c=>c.classList.toggle("hes",HES.includes(c.dataset.jamo)));
+  const tray=document.getElementById("tray"),lbl=document.getElementById("traylbl"),cnt=document.getElementById("cnt");
+  cnt.textContent=HES.length?HES.length+" à revoir":"";
+  if(!HES.length){tray.classList.remove("on");return;}
+  tray.classList.add("on");
+  lbl.innerHTML="<b>"+HES.join(" ")+"</b>";
+}
+function chain(){
+  const d=new Date(),pad=n=>String(n).padStart(2,"0");
+  return "HES|"+pad(d.getDate())+"/"+pad(d.getMonth()+1)+"|"+
+    HES.map(j=>{const c=JAMO_IDX[j];return j+"("+(c?jamoRR(c):"?")+")";}).join(" ");
+}
+function initTools(){
+  load();
+  document.querySelectorAll(".card").forEach(c=>{
+    c.querySelector(".flag").addEventListener("click",e=>{
+      e.stopPropagation();
+      const j=c.dataset.jamo,i=HES.indexOf(j);
+      if(i<0)HES.push(j); else HES.splice(i,1);
+      save();refreshHes();
+    });
+    c.addEventListener("click",()=>{ if(document.body.classList.contains("mask")) c.classList.toggle("rev"); });
+  });
+  const tm=document.getElementById("tmask");
+  tm.addEventListener("click",()=>{
+    const on=document.body.classList.toggle("mask");
+    tm.classList.toggle("on",on);
+    tm.textContent=on?"Montrer":"Test";
+    if(!on)document.querySelectorAll(".card.rev").forEach(c=>c.classList.remove("rev"));
+    sizeBar();
+  });
+  document.getElementById("copy").addEventListener("click",()=>{
+    const txt=chain(),btn=document.getElementById("copy");
+    const done=()=>{btn.textContent="Copié";setTimeout(()=>btn.textContent="Copier",1400);};
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(txt).then(done,()=>fallback(txt,btn));
+    } else fallback(txt,btn);
+  });
+  document.getElementById("wipe").addEventListener("click",()=>{
+    HES=[];save();refreshHes();
+  });
+  refreshHes();
+}
+function fallback(txt,btn){
+  const ta=document.getElementById("out");
+  ta.style.left="10px";ta.style.top="50%";ta.value=txt;ta.select();
+  try{document.execCommand("copy");btn.textContent="Copié";}catch(e){btn.textContent="Sélectionné";}
+  setTimeout(()=>{ta.style.left="-9999px";btn.textContent="Copier";},1600);
+}
+
+/* ============ sens inverse : hangul -> jamo ============ */
+const JAMO_IDX={};
+function buildJamoIdx(){
+  document.querySelectorAll(".card").forEach(c=>{ JAMO_IDX[c.dataset.jamo]=c; });
+}
+const CHO_ALL=CHO_KR,JUNG_ALL=JUNG_KR,JONG_ALL=JONG_KR;
+function decompose(txt){
+  const out=[];
+  for(const ch of txt){
+    const c=ch.codePointAt(0);
+    if(c>=0xAC00&&c<=0xD7A3){
+      const r=c-0xAC00,ji=r%28,vi=((r-ji)/28)%21,ci=Math.floor(r/588);
+      out.push({type:"bloc",ch,ci,vi,ji,
+        parts:CHO_ALL[ci]+" + "+JUNG_ALL[vi]+(ji?" + "+JONG_ALL[ji]:""),
+        rr:(ci===11?"":CHO[ci])+JUNG[vi]+JONG[ji],
+        fr:choFR(ci,vi)+JUNG_FR[vi]+JONG_FR[ji]});
+    } else if(c>=0x3131&&c<=0x3163){
+      out.push({type:"jamo",ch});
+    } else if(/\s/.test(ch)){
+      out.push({type:"sp"});
+    } else {
+      out.push({type:"autre",ch});
+    }
+  }
+  return out;
+}
+function showHangul(txt){
+  const parts=decompose(txt).filter(p=>p.type!=="autre");
+  if(!parts.filter(p=>p.type!=="sp").length){box.innerHTML='<div class="nope">Rien à décomposer.</div>';return;}
+  const blocks=parts.map(p=>
+    p.type==="sp" ? '<div class="gap"></div>' :
+    p.type==="bloc"
+    ? '<div class="blk"><div class="big">'+p.ch+'</div><div class="parts">'+p.parts+'</div><div class="say">'+p.rr+' · '+p.fr+'</div></div>'
+    : '<div class="blk"><div class="big">'+p.ch+'</div><div class="parts">jamo seul</div><div class="say">'+(JAMO_IDX[p.ch]?"voir la carte":"—")+'</div></div>'
+  ).join("");
+  const fr=parts.map(p=>p.type==="sp"?" / ":p.fr).filter(Boolean).join("·").replace(/·? \/ ·?/g," / ");
+  const bl=parts.filter(p=>p.type==="bloc").length;
+  box.innerHTML='<div class="blocks">'+blocks+'</div>'+
+    (bl>1?'<div class="whole"><b>'+txt+'</b><span class="say">['+fr+']</span></div>':'')+
+    (bl>1?'<div class="tip">Valeur des jamo bloc par bloc, pas la romanisation officielle du mot : le RR applique les liaisons (좋아해요 → joahaeyo, 합니다 → hamnida).</div>'
+         :'<div class="tip">Valeur des jamo, hors liaison avec le bloc suivant.</div>');
+  const first=parts.find(p=>JAMO_IDX[p.ch]);
+  if(first){const t=JAMO_IDX[first.ch];t.classList.add("hit");lastHit=t;t.scrollIntoView({block:"center",behavior:"smooth"});}
+}
+
+/* ============ interface ============ */
+const q=document.getElementById("q"),box=document.getElementById("compose"),clr=document.getElementById("clr");
+let lastHit=null;
+function clearHit(){if(lastHit){lastHit.classList.remove("hit");lastHit=null;}}
+
+function esc(s){return s.replace(/</g,"&lt;");}
+function suggHTML(title,items){
+  if(!items.length)return"";
+  return '<div class="sugg"><div class="sugg-h">'+title+'</div>'+items.map(it=>
+    '<button class="sugg-item" data-q="'+it.rr+'">'+
+      '<span class="kr">'+it.kr+'</span>'+
+      '<span class="meta"><span class="rrs">'+it.rr+'</span>'+
+        '<span class="why">'+it.why+'</span></span>'+
+      '<span class="tag '+it.tag+'">'+(it.tag==="same"?"même son":it.tag==="fix"?"RR correct":"autre son")+'</span>'+
+    '</button>').join("")+'</div>';
+}
+
+function run(){
+  const raw=q.value.trim();
+  clr.classList.toggle("on",raw.length>0);
+  clearHit();
+  if(!raw){box.classList.remove("on");box.innerHTML="";return;}
+  box.classList.add("on");
+
+  if(/[\uAC00-\uD7A3\u3131-\u3163]/.test(raw)){ showHangul(raw); sizeBar(); return; }
+
+  const norm=normalize(raw);
+  const typed=deDia(raw).replace(/[^a-z]/g,"");
+  let html="",warn="";
+
+  /* lettres inexistantes en coréen */
+  const bad=[...new Set(typed.split(""))].filter(c=>IMPOSSIBLE[c]&&!(c==="c"&&/ch/.test(typed)));
+  if(bad.length){
+    warn+='<div class="warn"><b>'+bad.join(", ")+'</b> — '+
+      bad.map(c=>IMPOSSIBLE[c][1]+', le plus proche est <span class="kr">'+IMPOSSIBLE[c][0]+'</span>').join(" ; ")+'.</div>';
+  }
+  /* graphie non-RR détectée */
+  if(norm.str!==typed && parseRR(norm.str)){
+    const fixed=parseRR(norm.str);
+    warn+='<div class="warn"><b>'+esc(raw)+'</b> n\'est pas du RR. '+
+      [...new Set(norm.notes)].join(" · ")+'. → <b>'+norm.str+'</b> = <span class="kr">'+
+      fixed.map(s=>s.char).join("")+'</span></div>';
+  }
+
+  const syl=parseRR(typed);
+
+  if(!syl){
+    const sa=softAlt(norm.str||typed);
+    const near=bad.length&&typed.length<=2?[]:fuzzy(norm.str||typed);
+    const items=near.map(o=>{
+      const k=krOf(o.w);
+      return k?{rr:o.w,kr:k.kr,tag:"fix",why:k.say}:null;
+    }).filter(Boolean);
+    if(norm.str&&norm.str!==typed){
+      const k=krOf(norm.str);
+      if(k)items.unshift({rr:norm.str,kr:k.kr,tag:"fix",why:k.say+" — graphie corrigée"});
+    }
+    if(sa){
+      const k=krOf(sa.alt);
+      if(k)items.unshift({rr:sa.alt,kr:k.kr,tag:"fix",why:sa.why});
+    }
+    box.innerHTML=warn+
+      '<div class="nope">« '+esc(raw)+' » ne se lit pas en RR.</div>'+
+      (items.length?suggHTML("tu voulais peut-être",items.slice(0,4))
+                   :'<div class="sugg"><div class="sugg-h">voyelles valides</div>'+
+                    '<div class="whole" style="font-family:var(--mono);font-size:12px">a ae ya yae eo e yeo ye o wa wae oe yo u wo we wi yu eu ui i</div></div>');
+    bind();sizeBar();return;
+  }
+
+  const blocks=syl.map(s=>
+    '<div class="blk"><div class="big">'+s.char+'</div><div class="parts">'+s.parts+'</div><div class="say">'+s.fr+'</div></div>'
+  ).join("");
+  const word=syl.map(s=>s.char).join(""), fr=syl.map(s=>s.fr).join("·");
+  const whole=syl.length>1
+    ? '<div class="whole"><b>'+word+'</b><span class="say">['+fr+']</span></div>'+
+      '<div class="tip">Lecture bloc par bloc : les assimilations entre blocs ne sont pas appliquées.</div>'
+    : '';
+
+  const soft=softAlt(typed);
+  if(soft){
+    const p=parseRR(soft.alt);
+    warn+='<div class="warn"><b>'+esc(raw)+'</b> se lit bien <span class="kr">'+word+
+      '</span>, mais si tu visais <span class="kr">'+p.map(s=>s.char).join("")+
+      '</span> : '+soft.why+' → <b>'+soft.alt+'</b></div>';
+  }
+  html='<div class="blocks">'+blocks+'</div>'+whole+warn;
+  const nb=neighbours(syl);
+  html+=suggHTML("à ne pas confondre",nb);
+  box.innerHTML=html;
+  bind();
+
+  sizeBar();
+  const target=IDX[typed];
+  if(target){
+    target.classList.add("hit");lastHit=target;
+    target.scrollIntoView({block:"center",behavior:"smooth"});
+  }
+}
+function bind(){
+  box.querySelectorAll(".sugg-item").forEach(b=>b.addEventListener("click",()=>{
+    q.value=b.dataset.q;run();
+  }));
+}
+function sizeBar(){
+  const h=document.querySelector(".bar").offsetHeight;
+  document.documentElement.style.setProperty("--barh",h+"px");
+}
+buildJamoIdx();initTools();sizeBar();
+/* chapitre actif dans la nav */
+(function(){
+  const links=[...document.querySelectorAll(".nav button")];
+  const secs=links.map(a=>document.getElementById(a.dataset.go));
+  links.forEach((a,i)=>a.addEventListener("click",()=>{
+    const el=secs[i]; if(!el)return;
+    const y=el.getBoundingClientRect().top+window.pageYOffset-(document.querySelector(".bar").offsetHeight+8);
+    window.scrollTo({top:y,behavior:"smooth"});
+  }));
+  if(!("IntersectionObserver" in window))return;
+  const io=new IntersectionObserver(es=>{
+    es.forEach(e=>{
+      if(!e.isIntersecting)return;
+      const i=secs.indexOf(e.target);
+      links.forEach((l,k)=>l.classList.toggle("active",k===i));
+      const a=links[i];
+      if(a)a.parentNode.scrollTo({left:Math.max(0,a.offsetLeft-70),behavior:"smooth"});
+    });
+  },{rootMargin:"-45% 0px -50% 0px"});
+  secs.forEach(x=>x&&io.observe(x));
+})();
+window.addEventListener("resize",sizeBar);
+let t=null;
+q.addEventListener("input",()=>{clearTimeout(t);t=setTimeout(run,140);});
+q.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();q.blur();run();}});
+clr.addEventListener("click",()=>{q.value="";run();q.focus();});
+</script>
+</body>
+</html>

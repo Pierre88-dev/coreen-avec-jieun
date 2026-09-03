@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Espace élève — coréen avec Jieun</title>
+<meta name="color-scheme" content="light">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+  <symbol id="fleur" viewBox="0 0 26 26">
+    <circle cx="13" cy="13" r="3.4"/>
+    <circle cx="13" cy="4.2" r="3" opacity=".7"/>
+    <circle cx="21.4" cy="10.2" r="3" opacity=".7"/>
+    <circle cx="18.2" cy="21" r="3" opacity=".7"/>
+    <circle cx="7.8" cy="21" r="3" opacity=".7"/>
+    <circle cx="4.6" cy="10.2" r="3" opacity=".7"/>
+  </symbol>
+</defs></svg>
+
+<div class="app">
+
+  <header class="top">
+    <a class="marque" id="marque" href="#">
+      <svg width="26" height="26" aria-hidden="true"><use href="#fleur" fill="currentColor"></use></svg>
+      <span>
+        <span class="nm">Coréen avec Jieun</span>
+        <span class="kr">지은과 함께 한국어</span>
+      </span>
+    </a>
+
+    <div class="outils">
+      <div class="cherche">
+        <div class="champ">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <circle cx="7" cy="7" r="4.6" stroke="currentColor" stroke-width="1.4" opacity=".55"></circle>
+            <path d="M10.6 10.6 L14 14" stroke="currentColor" stroke-width="1.4"
+                  stroke-linecap="round" opacity=".55"></path>
+          </svg>
+          <input type="search" id="q" autocomplete="off" spellcheck="false"
+                 placeholder="Rechercher un mot" aria-label="Rechercher dans mes leçons">
+          <span class="nb" id="nbRes"></span>
+        </div>
+        <div class="res" id="resultats" hidden role="listbox" aria-label="Résultats"></div>
+      </div>
+
+      <div class="qui" id="qui" hidden>
+        <span class="ini" id="quiIni" aria-hidden="true"></span>
+        <span class="pn" id="quiNom"></span>
+      </div>
+    </div>
+  </header>
+
+  <div class="shell">
+    <aside class="side">
+      <section>
+        <h2>Mes leçons</h2>
+        <ul class="lecons pile" id="listeLecons"></ul>
+      </section>
+      <section>
+        <h2>Fiches de référence</h2>
+        <div class="pile" id="listeRess"></div>
+      </section>
+    </aside>
+
+    <main class="contenu" id="contenu"></main>
+  </div>
+
+</div>
+
+<script src="assets/config.js"></script>
+<script src="assets/data-local.js"></script>
+<script src="assets/base.js"></script>
+<script src="assets/eleve.js"></script>
+</body>
+</html>

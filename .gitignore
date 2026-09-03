@@ -1,0 +1,10 @@
+# OneDrive depose ses fichiers de service dans chaque dossier
+desktop.ini
+Thumbs.db
+
+# Fichiers crees par OneDrive quand deux appareils ecrivent en meme temps
+*conflicted copy*
+*copie en conflit*
+
+# Fichiers de travail temporaires
+*.tmp

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Essai — coréen avec Jieun</title>
+<meta name="color-scheme" content="light">
+<meta name="robots" content="noindex">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+  <symbol id="fleur" viewBox="0 0 26 26">
+    <circle cx="13" cy="13" r="3.4"/>
+    <circle cx="13" cy="4.2" r="3" opacity=".7"/>
+    <circle cx="21.4" cy="10.2" r="3" opacity=".7"/>
+    <circle cx="18.2" cy="21" r="3" opacity=".7"/>
+    <circle cx="7.8" cy="21" r="3" opacity=".7"/>
+    <circle cx="4.6" cy="10.2" r="3" opacity=".7"/>
+  </symbol>
+</defs></svg>
+
+<div class="app">
+
+  <header class="top">
+    <a class="marque" href="essai.html">
+      <svg width="26" height="26" aria-hidden="true"><use href="#fleur" fill="currentColor"></use></svg>
+      <span>
+        <span class="nm">Salle d’essai</span>
+        <span class="kr">시험 삼아</span>
+      </span>
+    </a>
+    <div class="outils"><span class="badge" id="badgeMode"></span></div>
+  </header>
+
+  <div class="accueil" id="corps"></div>
+
+</div>
+
+<script src="assets/config.js"></script>
+<script src="assets/data-local.js"></script>
+<script src="assets/base.js"></script>
+<script src="assets/demo.js"></script>
+<script>
+(function () {
+  var corps  = document.getElementById('corps');
+  var badge  = document.getElementById('badgeMode');
+  var enLigne = Base.mode() === 'supabase';
+
+  badge.textContent = enLigne ? 'en ligne' : 'mode local';
+  badge.className = 'badge ' + (enLigne ? 'ok' : 'loc');
+
+  /* Cette page ne sert qu'avant la mise en ligne. Une fois la base branchée,
+     elle refuse de s'ouvrir : elle afficherait sinon les liens privés des
+     élèves à qui saurait la trouver. */
+  if (enLigne) {
+    corps.innerHTML =
+      '<h1>Salle fermée</h1>' +
+      '<p class="intro">Le site est relié à sa base : les leçons sont réelles et ' +
+      'les liens des élèves sont privés. Cette page d’essai n’a plus lieu d’être, ' +
+      'et elle n’affichera aucun lien.</p>' +
+      '<p class="lien-prof"><a href="prof.html">Aller à l’espace professeur</a></p>';
+    return;
+  }
+
+  /* L'initialisation de la base locale est asynchrone : on l'attend avant de
+     lire, sinon la page s'affiche avec un contenu vide au premier chargement. */
+  function dessiner() {
+    Base.espaceEleve('marie-demo').then(afficher);
+  }
+
+  function afficher() {
+    var d = JSON.parse(localStorage.getItem('cavj:base') || '{}');
+    var eleves = d.eleves || [];
+    var nb = (d.lecons || []).length;
+    var pub = (d.lecons || []).filter(function (l) { return l.publiee; }).length;
+
+    corps.innerHTML =
+      '<h1>Essayer avant de publier</h1>' +
+      '<p class="intro">Tout fonctionne déjà, sans compte ni installation. Les leçons ' +
+      'que tu écris ici vivent <b>dans ce navigateur</b> : rien n’est envoyé nulle part, ' +
+      'et rien ne suit sur un autre appareil. C’est fait pour juger l’usage.</p>' +
+
+      '<div class="lien-prive" style="margin:0 0 30px">' +
+        '<span class="lbl2">Contenu en place</span>' +
+        '<p style="margin:0;font-size:15px">' + nb + ' leçon' + (nb > 1 ? 's' : '') +
+        ', dont ' + pub + ' publiée' + (pub > 1 ? 's' : '') + ' et ' + (nb - pub) +
+        ' en brouillon.</p>' +
+      '</div>' +
+
+      '<h2 style="color:var(--vert);margin:0 0 14px">Côté professeur</h2>' +
+      '<div class="portes" style="grid-template-columns:1fr">' +
+        porte('J', 'Espace de Jieun', 'Écrire une leçon, composer le QCM, publier, voir les résultats',
+              'prof.html') +
+      '</div>' +
+
+      '<h2 style="color:var(--vert);margin:0 0 14px">Côté élève</h2>' +
+      '<div class="portes">' +
+        eleves.map(function (e) {
+          return porte(e.prenom.charAt(0), e.prenom, e.prenomKo,
+                       'eleve.html?e=' + encodeURIComponent(e.cle));
+        }).join('') +
+      '</div>' +
+
+      '<div class="lien-prive" style="margin-bottom:30px">' +
+        '<span class="lbl2">Remettre à zéro</span>' +
+        '<p style="margin:0 0 12px;font-size:15px;color:var(--gris)">' +
+          'Recharger la démonstration remplace tout par un mois de cours fictif. ' +
+          'Tout effacer repart d’une page blanche, sans aucune leçon.</p>' +
+        '<div style="display:flex;gap:10px;flex-wrap:wrap">' +
+          '<button type="button" class="bt" id="recharger">Recharger la démonstration</button>' +
+          '<button type="button" class="bt sec" id="effacer">Tout effacer</button>' +
+        '</div>' +
+      '</div>' +
+
+      '<h2 style="color:var(--vert);margin:0 0 14px">Ce que cet essai ne montre pas</h2>' +
+      '<p class="intro" style="margin-bottom:10px">Trois choses ne peuvent pas être jugées ici, ' +
+      'parce qu’elles ont besoin d’une vraie base :</p>' +
+      '<ul class="intro" style="margin:0 0 30px;padding-left:22px;line-height:1.8">' +
+        '<li>le <b>dépôt d’un PDF</b> depuis l’ordinateur — un document se déclare ' +
+            'pour l’instant par son chemin ;</li>' +
+        '<li>le <b>partage entre appareils</b> : ici, le téléphone de Marie ne verrait rien ;</li>' +
+        '<li>les <b>vraies adresses privées</b> des élèves, tirées au sort dans la base. ' +
+            'Celles d’ici sont volontairement devinables.</li>' +
+      '</ul>' +
+
+      '<p class="lien-prof">Le tableau de bord, lui, fonctionne : fais un QCM côté élève, ' +
+      'puis ouvre « Ses résultats » côté professeur.</p>';
+
+    document.getElementById('recharger').addEventListener('click', function () {
+      if (!confirm('Remplacer tout le contenu par la démonstration ?')) return;
+      Demo.charger(); dessiner();
+    });
+    document.getElementById('effacer').addEventListener('click', function () {
+      if (!confirm('Effacer toutes les leçons et tous les résultats de ce navigateur ?')) return;
+      Demo.effacer(); dessiner();
+    });
+  }
+
+  function porte(ini, nom, sous, href) {
+    return '<a class="porte" href="' + href + '">' +
+      '<span class="ini" aria-hidden="true">' + ini + '</span>' +
+      '<span><span class="pn">' + nom + '</span>' +
+      '<span class="pk">' + sous + '</span></span></a>';
+  }
+
+  dessiner();
+})();
+</script>
+</body>
+</html>
