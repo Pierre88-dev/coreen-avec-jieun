@@ -92,15 +92,17 @@ objets, et fichiers rendus « à la demande » que git ne peut plus lire.
 
 La solution n'est pas de renoncer à git, ni de déplacer le projet. C'est de
 **séparer les deux** : les fichiers de travail restent ici, la base git vit
-ailleurs. Une seule commande, à lancer une fois :
+ailleurs. C'est **déjà fait**, par cette commande lancée une fois :
 
 ```bash
 git init --separate-git-dir "C:\Projets\coreen-avec-jieun.git" .
 ```
 
-Le dossier reçoit alors un fichier `.git` de **36 octets** — un simple renvoi,
-qu'OneDrive synchronise sans risque — pendant que le dépôt lui-même s'installe
-dans `C:\Projets\coreen-avec-jieun.git`, hors de portée de la synchronisation.
+Le dossier ne contient donc qu'un fichier `.git` de **41 octets** — un simple
+renvoi, qu'OneDrive synchronise sans risque — pendant que le dépôt lui-même
+vit dans `C:\Projets\coreen-avec-jieun.git`, hors de portée de la
+synchronisation. **Ne relance jamais `git init` ici** : le montage est fait,
+le refaire casserait ce renvoi.
 
 Ensuite, tout se passe normalement depuis ce dossier : `git add`, `git commit`,
 `git push`, sans rien changer à tes habitudes. Vérifié : commit, historique et

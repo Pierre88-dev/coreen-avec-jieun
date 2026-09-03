@@ -1,36 +1,40 @@
 # Mise en ligne — ce que Pierre doit faire
 
-Trois comptes à créer. Je ne peux pas les créer à ta place : une inscription
-demande un mot de passe, et je n'en manipule jamais. Compte 15 minutes en tout.
+Deux comptes à créer, et un dépôt à ouvrir sur celui que tu as déjà. Je ne peux
+pas les créer à ta place : une inscription demande un mot de passe, et je n'en
+manipule jamais. Compte 15 minutes en tout.
 
 ---
 
 ## 1. GitHub — le dépôt qui héberge le code
 
-**Le projet n'est plus sous git.** Il l'était à son ancien emplacement ; en le
-déplaçant dans OneDrive, le dossier `.git` n'a pas été recopié — c'est la seule
-chose qu'OneDrive corrompt vraiment. Il n'y avait aucun commit, donc rien de perdu.
+**Côté machine, tout est prêt.** Le projet est sous git depuis le 3 septembre
+2026, avec un premier commit couvrant les 21 fichiers, et le dépôt vit hors
+OneDrive : le dossier ne contient qu'un fichier `.git` de 41 octets, un renvoi
+vers `C:\Projets\coreen-avec-jieun.git`.
 
-Première étape, à lancer **une fois**, depuis le dossier du projet. Elle garde les
-fichiers ici et installe la base git ailleurs, hors de portée de la synchronisation :
+**Ne relance jamais `git init` ici** — le montage est fait, le refaire casserait
+ce renvoi. `git add`, `git commit` et `git push` s'utilisent normalement depuis
+ce dossier.
 
-```bash
-git init --separate-git-dir "C:\Projets\coreen-avec-jieun.git" .
-```
+L'adresse du dépôt distant est déjà enregistrée :
+`https://github.com/Pierre88-dev/coreen-avec-jieun.git`. Il reste à créer le
+dépôt lui-même, qui n'existe pas encore côté GitHub.
 
-Le dossier ne reçoit alors qu'un fichier `.git` de 36 octets — un simple renvoi,
-qu'OneDrive synchronise sans risque. Ensuite `git add`, `git commit` et
-`git push` s'utilisent normalement depuis ici, sans rien changer à tes habitudes.
-
-1. Sur **github.com**, connecte-toi avec ton compte habituel.
+1. Sur **github.com**, connecte-toi avec le compte `Pierre88-dev`.
 2. Bouton **New repository**. Nom : `coreen-avec-jieun`. Coche **Private**.
-   **Ne coche ni README, ni .gitignore, ni licence** — le dossier a déjà son contenu.
-3. Copie l'adresse proposée, de la forme
-   `https://github.com/<ton-compte>/coreen-avec-jieun.git`.
+   **Ne coche ni README, ni .gitignore, ni licence** — le dossier a déjà son
+   contenu, et une case cochée créerait un commit qui entrerait en conflit
+   avec le tien.
+3. Dans **ton propre terminal**, depuis le dossier du site :
 
-Dis-le-moi et je prépare le premier commit. Le tout premier `git push` devra
-être lancé par toi dans ton propre terminal : une fenêtre de connexion GitHub
-s'ouvre, et mon shell ne peut pas l'afficher.
+   ```bash
+   git push -u origin master
+   ```
+
+Ce premier push doit venir de toi : une fenêtre de connexion GitHub s'ouvre à
+ce moment-là, et le shell d'agent ne peut pas l'afficher. Les suivants passeront
+sans rien demander.
 
 ## 2. Cloudflare — l'hébergement
 
@@ -62,7 +66,8 @@ Ensuite, chaque `git push` redéploie tout seul.
    `supabase/schema.sql` de ce dossier, colle **tout** son contenu, puis **Run**.
    Le message attendu est « Success. No rows returned ».
 5. Menu de gauche : **Authentication** → **Users** → **Add user** →
-   *Create new user*. Email : celui de Jieun (`jieun_kim920@naver.com`).
+   *Create new user*. Email : l'adresse Naver de Jieun — tu l'as dans tes
+   contacts, elle n'a pas sa place dans un historique git qui ne s'efface pas.
    Choisis-lui un mot de passe et transmets-le-lui directement — pas par ici.
 
 ### Les deux valeurs à me donner
