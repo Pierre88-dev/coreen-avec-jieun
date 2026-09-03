@@ -65,12 +65,11 @@ constants, et un titre qui rétrécit dans une colonne étroite est pire, pas mi
 
 Chaque contrôle possède : défaut, survol, focus visible, désactivé.
 
-**La réponse au QCM porte cinq états**, et c'est le cœur de l'interface :
+**La réponse au QCM porte quatre états**, et c'est le cœur de l'interface :
 
 | État | Traitement |
 | --- | --- |
 | Neutre | Fond `--doux` |
-| Sélectionnée, pas encore corrigée | Fond blanc, liseré `inset 0 0 0 2px --encre`, pastille |
 | Juste, l'élève avait bon | Vert plein, texte blanc, étiquette **JUSTE** |
 | Bonne réponse révélée | `--vert-cl`, filet gauche vert, étiquette **BONNE RÉPONSE** |
 | Le mauvais choix de l'élève | `--rouge-cl`, filet gauche rouge, étiquette **VOTRE RÉPONSE** |

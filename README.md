@@ -51,8 +51,8 @@ Aucun autre fichier ne change — c'est tout l'intérêt de `assets/base.js`.
 ## Ce qui marche
 
 - Leçons datées par élève, avec récapitulatif en texte libre et documents joints
-- QCM à quatre choix, **entraînement** (correction immédiate) ou **test**
-  (correction groupée), au choix de l'élève
+- QCM à quatre choix, en **entraînement** : la correction et le *pourquoi*
+  s'affichent dès que l'élève répond
 - Cinq états distincts pour une réponse, explication du *pourquoi*, score,
   reprise possible
 - **Recherche** dans ses propres leçons, surlignage dans la page. Insensible

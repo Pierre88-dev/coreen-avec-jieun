@@ -199,7 +199,7 @@ window.Base = (function () {
         .then(function (r) {
           if (r.error) throw new Error(r.error.message);
           return r.data.map(function (x) {
-            return { lecon: x.lecon_id, eleve: x.eleve_id, mode: x.mode,
+            return { lecon: x.lecon_id, eleve: x.eleve_id,
                      score: x.score, total: x.total, le: x.envoye_le };
           });
         });
@@ -303,7 +303,7 @@ window.Base = (function () {
     });
   }
 
-  function enregistrerReponse(cleUrl, leconId, mode, choix, score, total) {
+  function enregistrerReponse(cleUrl, leconId, choix, score, total) {
     return demarrer().then(function () {
       if (!reel) {
         /* En mode local on enregistre quand même : c'est ce qui permet
@@ -311,7 +311,7 @@ window.Base = (function () {
         var d = lire();
         var e = d.eleves.filter(function (x) { return x.cle === String(cleUrl).toLowerCase(); })[0];
         if (!e) return;
-        d.reponses.unshift({ lecon: leconId, eleve: e.id, mode: mode,
+        d.reponses.unshift({ lecon: leconId, eleve: e.id,
                              score: score, total: total, le: new Date().toISOString() });
         d.reponses = d.reponses.slice(0, 200);
         ecrire(d);
@@ -319,7 +319,7 @@ window.Base = (function () {
       }
       return sb.rpc('enregistrer_reponse', {
         cle_url: String(cleUrl).toLowerCase(), p_lecon: leconId,
-        p_mode: mode, p_choix: choix, p_score: score, p_total: total
+        p_choix: choix, p_score: score, p_total: total
       }).then(function (r) {
         if (r.error) console.warn('Réponse non enregistrée :', r.error.message);
       });

@@ -55,7 +55,6 @@ create table if not exists reponses (
   id        uuid primary key default gen_random_uuid(),
   lecon_id  uuid not null references lecons(id) on delete cascade,
   eleve_id  text not null references eleves(id) on delete cascade,
-  mode      text not null,                   -- 'entrainement' | 'test'
   choix     int[] not null,
   score     int,
   total     int,
@@ -122,7 +121,7 @@ $$;
 -- Enregistre une tentative. Exige la clé : on ne peut pas écrire au nom
 -- d'un élève dont on ne connaît pas l'adresse privée.
 create or replace function enregistrer_reponse(
-  cle_url text, p_lecon uuid, p_mode text, p_choix int[], p_score int, p_total int)
+  cle_url text, p_lecon uuid, p_choix int[], p_score int, p_total int)
 returns void
 language plpgsql
 security definer
@@ -137,14 +136,14 @@ begin
   if not exists (select 1 from lecons where id = p_lecon and eleve_id = v_eleve) then
     raise exception 'cette lecon n''appartient pas a cet eleve';
   end if;
-  insert into reponses (lecon_id, eleve_id, mode, choix, score, total)
-  values (p_lecon, v_eleve, p_mode, p_choix, p_score, p_total);
+  insert into reponses (lecon_id, eleve_id, choix, score, total)
+  values (p_lecon, v_eleve, p_choix, p_score, p_total);
 end $$;
 
 revoke all on function espace_eleve(text)                              from public, anon;
-revoke all on function enregistrer_reponse(text, uuid, text, int[], int, int) from public, anon;
+revoke all on function enregistrer_reponse(text, uuid, int[], int, int) from public, anon;
 grant execute on function espace_eleve(text)                           to anon, authenticated;
-grant execute on function enregistrer_reponse(text, uuid, text, int[], int, int) to anon, authenticated;
+grant execute on function enregistrer_reponse(text, uuid, int[], int, int) to anon, authenticated;
 
 -- ------------------------------------------------- contenu de démarrage ---
 

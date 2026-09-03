@@ -143,12 +143,12 @@ window.Demo = (function () {
       return d.toISOString();
     };
     var reponses = [
-      { lecon: 'd-m3', eleve: 'marie', mode: 'test',         score: 4,  total: 4,  le: j(1, 19) },
-      { lecon: 'd-m2', eleve: 'marie', mode: 'test',         score: 4,  total: 5,  le: j(3, 21) },
-      { lecon: 'd-m2', eleve: 'marie', mode: 'entrainement', score: 3,  total: 5,  le: j(4, 18) },
-      { lecon: 'd-m1', eleve: 'marie', mode: 'test',         score: 10, total: 12, le: j(9, 20) },
-      { lecon: 'd-b2', eleve: 'brooklyn', mode: 'entrainement', score: 2, total: 4, le: j(2, 22) },
-      { lecon: 'd-b1', eleve: 'brooklyn', mode: 'test',      score: 7,  total: 12, le: j(11, 20) }
+      { lecon: 'd-m3', eleve: 'marie',    score: 4,  total: 4,  le: j(1, 19) },
+      { lecon: 'd-m2', eleve: 'marie',    score: 4,  total: 5,  le: j(3, 21) },
+      { lecon: 'd-m2', eleve: 'marie',    score: 3,  total: 5,  le: j(4, 18) },
+      { lecon: 'd-m1', eleve: 'marie',    score: 10, total: 12, le: j(9, 20) },
+      { lecon: 'd-b2', eleve: 'brooklyn', score: 2,  total: 4,  le: j(2, 22) },
+      { lecon: 'd-b1', eleve: 'brooklyn', score: 7,  total: 12, le: j(11, 20) }
     ];
 
     var eleves = Object.keys(Data.eleves).map(function (id) {

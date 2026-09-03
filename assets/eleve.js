@@ -290,7 +290,7 @@
   function ouvrir(lecon, terme) {
     courante = lecon;
     termeActif = terme || '';
-    etat = charger(lecon) || { mode: 'entrainement', rep: vide(lecon), corrige: false };
+    etat = charger(lecon) || { rep: vide(lecon) };
     marquerActive();
 
     var meta = (lecon.numero ? 'Leçon ' + lecon.numero + ' · ' : '') + dateFr(lecon.date);
@@ -323,46 +323,35 @@
 
   function dessinerQcm() {
     var qs = courante.questions, n = qs.length;
-    var entrainement = etat.mode === 'entrainement';
     var repondues = etat.rep.filter(function (r) { return r !== null; }).length;
-    var fini = etat.corrige || (entrainement && repondues === n);
+    var fini = repondues === n;
 
     var html =
       '<div class="qcm-tete"><div class="bloc">' +
         '<h2>Questions de la leçon</h2>' +
-        '<div class="info">' + (entrainement
-          ? 'Mode entraînement : la correction s’affiche à chaque réponse.'
-          : 'Mode test : tu réponds à tout, puis tu corriges d’un coup.') + '</div>' +
-      '</div>' +
-      '<div class="modes" role="group" aria-label="Mode de correction">' +
-        '<button type="button" data-m="entrainement" class="' + (entrainement ? 'on' : '') +
-          '" aria-pressed="' + entrainement + '">Entraînement</button>' +
-        '<button type="button" data-m="test" class="' + (entrainement ? '' : 'on') +
-          '" aria-pressed="' + !entrainement + '">Test</button>' +
+        '<div class="info">La correction s’affiche à chaque réponse.</div>' +
       '</div></div>';
 
     qs.forEach(function (q, i) {
       var don = etat.rep[i];
-      var revele = etat.corrige || (entrainement && don !== null);
+      var revele = don !== null;
 
       html += '<div class="q"><div class="tete">' +
               '<span class="num">' + (i + 1 < 10 ? '0' : '') + (i + 1) + '</span>' +
               '<span class="enonce">' + q.t + '</span></div><div class="reps">';
 
       q.o.forEach(function (opt, j) {
-        var cl = 'opt', et = '', pt = '';
+        var cl = 'opt', et = '';
         if (revele) {
           if (j === q.r && don === q.r)      { cl += ' juste';   et = 'JUSTE'; }
           else if (j === q.r)                { cl += ' revelee'; et = 'BONNE RÉPONSE'; }
           else if (j === don)                { cl += ' faux';    et = 'VOTRE RÉPONSE'; }
-        } else if (j === don) {
-          cl += ' sel'; pt = '<span class="point"></span>';
         }
         html += '<button type="button" class="' + cl + '" data-q="' + i + '" data-o="' + j + '"' +
                 (revele ? ' disabled' : '') + '>' +
                 '<span class="lt">' + 'ABCD'[j] + '</span>' +
                 '<span class="tx">' + opt + '</span>' +
-                (et ? '<span class="et">' + et + '</span>' : '') + pt + '</button>';
+                (et ? '<span class="et">' + et + '</span>' : '') + '</button>';
       });
 
       html += '</div>';
@@ -385,10 +374,6 @@
                 '<span class="jauge"><i style="width:' +
                   Math.round(repondues / n * 100) + '%"></i></span>' +
               '</div>';
-      if (!entrainement) {
-        html += '<button type="button" class="bt" id="corriger"' +
-                (repondues < n ? ' disabled' : '') + '>Corriger</button>';
-      }
     }
     html += '</div>';
 
@@ -402,31 +387,16 @@
   function brancher() {
     var c = document.getElementById('carteQcm');
 
-    Array.prototype.forEach.call(c.querySelectorAll('.modes button'), function (b) {
-      b.addEventListener('click', function () {
-        if (b.dataset.m === etat.mode) return;
-        etat = { mode: b.dataset.m, rep: vide(courante), corrige: false };
-        sauver(); dessinerQcm(); dessinerListe();
-      });
-    });
-
     Array.prototype.forEach.call(c.querySelectorAll('.opt'), function (b) {
       b.addEventListener('click', function () {
         etat.rep[+b.dataset.q] = +b.dataset.o;
-        sauver(); dessinerQcm();
-        if (etat.mode === 'entrainement') { dessinerListe(); remonter(); }
+        sauver(); dessinerQcm(); dessinerListe(); remonter();
       });
-    });
-
-    var co = c.querySelector('#corriger');
-    if (co) co.addEventListener('click', function () {
-      etat.corrige = true; sauver(); dessinerQcm(); dessinerListe(); remonter();
-      c.scrollIntoView({ block: 'start' });
     });
 
     var re = c.querySelector('#rejouer');
     if (re) re.addEventListener('click', function () {
-      etat = { mode: etat.mode, rep: vide(courante), corrige: false };
+      etat = { rep: vide(courante) };
       sauver(); dessinerQcm(); dessinerListe();
       c.scrollIntoView({ block: 'start' });
     });
@@ -453,11 +423,11 @@
      apercevoir — sa progression est de toute façon gardée dans son navigateur. */
   var remonte = {};
   function remonter() {
-    var fini = etat.corrige || etat.rep.every(function (r) { return r !== null; });
-    var marque = courante.id + ':' + etat.mode + ':' + etat.rep.join(',');
+    var fini = etat.rep.every(function (r) { return r !== null; });
+    var marque = courante.id + ':' + etat.rep.join(',');
     if (!fini || remonte[marque]) return;
     remonte[marque] = true;
-    Base.enregistrerReponse(cleUrl, courante.id, etat.mode, etat.rep,
+    Base.enregistrerReponse(cleUrl, courante.id, etat.rep,
                             score(), courante.questions.length);
   }
 
@@ -473,7 +443,7 @@
   function lireScore(l) {
     var v = charger(l);
     if (!v) return null;
-    var fini = v.corrige || v.rep.every(function (r) { return r !== null; });
+    var fini = v.rep.every(function (r) { return r !== null; });
     if (!fini) return null;
     return l.questions.reduce(function (n, q, i) {
       return n + (v.rep[i] === q.r ? 1 : 0);

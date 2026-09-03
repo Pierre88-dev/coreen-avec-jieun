@@ -234,15 +234,6 @@ h1{margin:0; font-size:var(--t-h1); font-weight:700; letter-spacing:-.025em; lin
 .qcm-tete h2{margin:0; font-size:var(--t-h2); font-weight:700; letter-spacing:-.02em;}
 .qcm-tete .info{font-size:var(--t-m); color:var(--gris);}
 
-.modes{display:flex; flex:none; padding:3px; background:#e6e4de; border-radius:var(--r);}
-.modes button{
-  padding:9px 18px; background:none; border:0; border-radius:var(--r);
-  font-size:var(--t-m); color:var(--gris); cursor:pointer;
-  transition:background var(--vite),color var(--vite);
-}
-.modes button:hover:not(.on){color:var(--encre);}
-.modes button.on{background:var(--blanc); color:var(--encre); font-weight:600;}
-
 .q{display:flex; flex-direction:column; gap:14px; padding:24px 26px; background:var(--blanc);}
 .q .tete{display:flex; gap:14px; align-items:baseline;}
 .q .num{
@@ -265,10 +256,7 @@ h1{margin:0; font-size:var(--t-h1); font-weight:700; letter-spacing:-.025em; lin
 .opt .lt{flex:none; font-weight:600; color:var(--gris);}
 .opt .tx{flex:1; min-width:0;}
 .opt .et{flex:none; font-size:.75rem; font-weight:700; letter-spacing:.1em;}
-.opt .point{flex:none; width:10px; height:10px; border-radius:50%; background:var(--encre);}
 
-.opt.sel{background:var(--blanc); box-shadow:inset 0 0 0 2px var(--encre);}
-.opt.sel .lt{color:var(--encre);}
 .opt.juste{background:var(--vert); color:var(--blanc);}
 .opt.juste .lt,.opt.juste .et{color:var(--blanc);}
 .opt.revelee{background:var(--vert-cl); color:var(--vert-fonce); box-shadow:inset 4px 0 0 var(--vert);}

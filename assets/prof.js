@@ -107,7 +107,7 @@
         elEditeur.innerHTML =
           '<div class="vide"><h1>Pas encore de tentative</h1>' +
           '<p>Dès que ' + ech(eleveCourant.prenom) + ' aura terminé un QCM, tu verras ' +
-          'ici chaque passage : la date, le mode choisi et le score.</p>' +
+          'ici chaque passage : la date et le score.</p>' +
           '<p>Une leçon peut être refaite autant de fois qu’il veut — tous les ' +
           'passages restent, pour que tu voies la progression et pas seulement ' +
           'le dernier résultat.</p></div>';
@@ -123,14 +123,13 @@
         '</div></div>' +
         '<div class="section" style="grid-template-columns:1fr">' +
           '<table class="tableau"><thead><tr>' +
-            '<th>Leçon</th><th>Quand</th><th>Mode</th><th class="num">Score</th>' +
+            '<th>Leçon</th><th>Quand</th><th class="num">Score</th>' +
           '</tr></thead><tbody>' +
           rs.map(function (r) {
             var part = r.total ? r.score / r.total : 0;
             return '<tr>' +
               '<td>' + ech(titre[r.lecon] || 'Leçon supprimée') + '</td>' +
               '<td class="pale">' + quand(r.le) + '</td>' +
-              '<td class="pale">' + (r.mode === 'test' ? 'Test' : 'Entraînement') + '</td>' +
               '<td class="num"><span class="sc ' + (part < .6 ? 'bas' : '') + '">' +
                 r.score + '/' + r.total + '</span></td>' +
             '</tr>';
