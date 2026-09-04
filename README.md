@@ -53,7 +53,7 @@ Aucun autre fichier ne change — c'est tout l'intérêt de `assets/base.js`.
 - Leçons datées par élève, avec récapitulatif en texte libre et documents joints
 - QCM à quatre choix, en **entraînement** : la correction et le *pourquoi*
   s'affichent dès que l'élève répond
-- Cinq états distincts pour une réponse, explication du *pourquoi*, score,
+- Quatre états distincts pour une réponse, explication du *pourquoi*, score,
   reprise possible
 - **Recherche** dans ses propres leçons, surlignage dans la page. Insensible
   aux accents et à la casse, fonctionne en hangul
@@ -73,6 +73,32 @@ le code du site pour les récupérer. Jieun les copie depuis son espace.
 
 Les clés de `data-local.js` (`marie-demo`) sont volontairement devinables :
 ce fichier est servi publiquement et ne doit jamais rien contenir de sensible.
+
+## La base : trois principes gravés dans le schéma
+
+`supabase/schema.sql` n'est pas qu'une liste de tables. Trois choix y sont
+délibérés, et les défaire aurait des conséquences que le code ne montre pas.
+
+**Un passage est autonome.** Quand un élève termine, la base range dans son
+résultat l'intitulé de la leçon *et* une photographie des questions telles
+qu'elles étaient ce jour-là. Corriger la leçon ensuite ne rend plus son score
+faux ; la supprimer ne l'efface plus. C'est ce qui rend l'historique digne de
+confiance des années plus tard.
+
+**Le score est calculé par la base, pas par le navigateur.** Le site n'envoie
+que les choix de l'élève ; `enregistrer_reponse` relit les bonnes réponses et
+compte. Rien de ce qui sera archivé ne dépend de ce qu'un navigateur affirme.
+
+**L'élève ne touche jamais une table.** Row Level Security ferme tout ; il ne
+dispose que de quatre fonctions, chacune exigeant sa clé privée : lire son
+espace, déposer un passage, ranger une progression en cours, poser une question.
+Toute nouveauté côté élève passe par une cinquième fonction, jamais par un accès
+direct.
+
+Le schéma prévoit aussi ce que le site ne sait pas encore faire : tests groupés,
+boîte à questions, reprise sur un autre appareil, trace des coûts d'API. Ces
+tables resteront vides jusqu'à ce que le site s'y branche — c'était le moment de
+les écrire, avant que la base ne contienne de vraies leçons.
 
 ## Ce qui reste à faire
 
@@ -101,7 +127,32 @@ L'ordre n'est pas négociable : chaque étape a besoin de la précédente.
 
    En attendant, l'espace professeur donne la consigne toute prête et relit la
    réponse.
-4. **Réveil automatique de Supabase** — sans lui, le projet gratuit se met en
+
+   **Le modèle n'est pas encore choisi.** Opus 5 est le candidat par défaut : une
+   question fausse enseigne une erreur, et c'est Jieun qui devra la rattraper en
+   cours. Sonnet 5 coûte 2,5 fois moins. On générera le même QCM avec les deux
+   sur une vraie leçon, et **Jieun jugera** — elle seule sait si une question sur
+   les 받침 est juste.
+
+   Ordre de grandeur des coûts, mesuré sur ses vrais documents (12 et 29 pages,
+   du texte avec quelques illustrations) : **15 à 35 centimes** par QCM de leçon,
+   **près d'un euro** pour un test groupé de 100 questions, avec Opus 5. La
+   limite de l'API est de 600 pages et 32 Mo par envoi — hors de portée ici.
+4. **Les tests groupés** — un QCM de 10 à 100 questions portant sur plusieurs
+   leçons, généré depuis leurs PDF. Le schéma les prévoit (tables `tests`,
+   `tests_lecons`), le site ne les affiche pas encore.
+5. **La boîte à questions** — un encart en bas de la leçon où l'élève dépose ce
+   qu'il n'a pas compris. Jieun lit et répond **au cours suivant** : pas de
+   réponse écrite, donc pas de messagerie ni d'attente déçue. Il lui faudra un
+   compteur de messages non lus, sinon la boîte deviendra une boîte morte.
+6. **La reprise d'un parcours sur un autre appareil** — table `progressions`,
+   prévue au schéma. Indispensable au-delà de trente questions.
+7. **Régénérer le lien d'un élève** — les clés sont solides, mais un lien se
+   transfère. Aucun bouton ne permet aujourd'hui d'en redonner un neuf.
+8. **Dupliquer une leçon d'un élève à l'autre** — ne touche pas la base : les
+   deux leçons pointent vers le même PDF, stocké une seule fois. La copie arrive
+   en brouillon, QCM compris.
+9. **Réveil automatique de Supabase** — sans lui, le projet gratuit se met en
    pause après 7 jours d'inactivité et le site se retrouve vide.
 
 ## Git : le dépôt ne doit pas vivre dans OneDrive

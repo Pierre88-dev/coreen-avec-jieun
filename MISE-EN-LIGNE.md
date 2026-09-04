@@ -1,60 +1,40 @@
 # Mise en ligne — ce que Pierre doit faire
 
-Deux comptes à créer, et un dépôt à ouvrir sur celui que tu as déjà. Je ne peux
-pas les créer à ta place : une inscription demande un mot de passe, et je n'en
-manipule jamais. Compte 15 minutes en tout.
+Deux étapes sur trois sont **faites**. Il ne reste que Supabase, en bas de page.
+Compte une quinzaine de minutes.
 
 ---
 
-## 1. GitHub — le dépôt qui héberge le code
+## 1. GitHub — fait le 3 septembre 2026 ✅
 
-**Côté machine, tout est prêt.** Le projet est sous git depuis le 3 septembre
-2026, avec un premier commit couvrant les 21 fichiers, et le dépôt vit hors
-OneDrive : le dossier ne contient qu'un fichier `.git` de 41 octets, un renvoi
-vers `C:\Projets\coreen-avec-jieun.git`.
+Dépôt privé `Pierre88-dev/coreen-avec-jieun`, poussé, `origin` enregistré.
+L'authentification GitHub est mémorisée sur la machine : **les push suivants
+peuvent être lancés par l'agent**, plus aucune fenêtre de connexion.
 
-**Ne relance jamais `git init` ici** — le montage est fait, le refaire casserait
-ce renvoi. `git add`, `git commit` et `git push` s'utilisent normalement depuis
-ce dossier.
+Le dépôt vit hors OneDrive — le dossier ne contient qu'un fichier `.git` de
+41 octets, un renvoi vers `C:\Projets\coreen-avec-jieun.git`. **Ne relance
+jamais `git init` ici** : le montage est fait, le refaire casserait ce renvoi.
+`git add`, `git commit`, `git push` s'utilisent normalement depuis ce dossier.
 
-L'adresse du dépôt distant est déjà enregistrée :
-`https://github.com/Pierre88-dev/coreen-avec-jieun.git`. Il reste à créer le
-dépôt lui-même, qui n'existe pas encore côté GitHub.
+## 2. Cloudflare — fait le 3 septembre 2026 ✅
 
-1. Sur **github.com**, connecte-toi avec le compte `Pierre88-dev`.
-2. Bouton **New repository**. Nom : `coreen-avec-jieun`. Coche **Private**.
-   **Ne coche ni README, ni .gitignore, ni licence** — le dossier a déjà son
-   contenu, et une case cochée créerait un commit qui entrerait en conflit
-   avec le tien.
-3. Dans **ton propre terminal**, depuis le dossier du site :
+Le site est en ligne : **https://coreen-avec-jieun.pages.dev**
 
-   ```bash
-   git push -u origin master
-   ```
+Projet Pages branché sur le dépôt GitHub, sans configuration de build. Chaque
+`git push` redéploie tout seul, en moins d'une minute.
 
-Ce premier push doit venir de toi : une fenêtre de connexion GitHub s'ouvre à
-ce moment-là, et le shell d'agent ne peut pas l'afficher. Les suivants passeront
-sans rien demander.
+Deux choses à savoir si tu dois y retourner :
 
-## 2. Cloudflare — l'hébergement
+- **Le bouton « Create application » mène au mauvais produit.** Il ouvre le flux
+  *Workers*, qui réclame un API token et ne convient pas à un site statique. Le
+  flux *Pages* n'est plus dans les menus ; il s'atteint par l'URL directe
+  `dash.cloudflare.com/d91e1bf665ad3d9b5c4c9748d71f2b51/workers-and-pages/create/pages`
+  → **Import an existing Git repository**.
+- Sur l'écran de configuration, seul le champ **Production branch** est vide et
+  doit être rempli à `master`. Framework preset **None**, build command et build
+  output directory **vides** : il n'y a rien à compiler.
 
-1. Sur **dash.cloudflare.com/sign-up**, crée un compte (email + mot de passe).
-   Gratuit, aucune carte bancaire demandée.
-2. Valide l'email de confirmation.
-3. Dans le menu de gauche : **Workers & Pages** → **Create** → onglet **Pages**
-   → **Connect to Git**.
-4. Autorise Cloudflare à lire ton GitHub, puis choisis `coreen-avec-jieun`.
-5. Écran de configuration — **c'est le seul endroit où on peut se tromper** :
-   - Framework preset : **None**
-   - Build command : **laisser vide**
-   - Build output directory : **laisser vide** (ou `/`)
-
-   Le site est en HTML simple, il n'y a rien à compiler.
-6. **Save and Deploy**. Une minute plus tard tu as une adresse en `.pages.dev`.
-
-Ensuite, chaque `git push` redéploie tout seul.
-
-## 3. Supabase — la base de données
+## 3. Supabase — la base de données, à faire
 
 1. Sur **supabase.com**, **Start your project**. Tu peux te connecter avec
    ton compte GitHub, ça évite un mot de passe de plus.
