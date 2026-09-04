@@ -76,12 +76,32 @@ ce fichier est servi publiquement et ne doit jamais rien contenir de sensible.
 
 ## Ce qui reste à faire
 
-1. **Dépôt de fichiers** — un document se déclare encore par son chemin ;
+L'ordre n'est pas négociable : chaque étape a besoin de la précédente.
+
+1. **Le projet Supabase** — sans lui le site reste en mode local, chaque
+   navigateur dans son coin. Voir `MISE-EN-LIGNE.md`.
+2. **Dépôt de fichiers** — un document se déclare encore par son chemin ;
    téléverser un PDF depuis l'ordinateur demande Supabase Storage.
-2. **Bouton « Générer le QCM »** — en attendant, l'espace professeur donne la
-   consigne toute prête et relit la réponse. Il faudra une clé d'API et une
-   fonction serveur : la clé ne peut pas vivre dans la page.
-3. **Réveil automatique de Supabase** — sans lui, le projet gratuit se met en
+3. **Bouton « Générer le QCM »**, et il vient **du PDF de la leçon**, pas du
+   récapitulatif. Décision de Pierre du 3 septembre 2026 : Jieun ne saisit qu'un
+   mini-récap de ce qui a été vu en cours ; la matière, elle, est dans le PDF.
+   L'API Claude lit les PDF directement, y compris les scans, qu'elle lit comme
+   des images — ce sont ceux de Jieun. Le récap gardera son rôle : dire sur quoi
+   porter les questions.
+
+   Deux conséquences :
+
+   - La clé d'API vivra en **variable d'environnement Cloudflare**, lue par une
+     fonction serveur. Jamais dans la page, jamais dans le dépôt : elle est
+     payante à l'usage et le dépôt est servi publiquement. Cette fonction devra
+     vérifier que l'appelant est bien Jieun, sans quoi n'importe qui fait tourner
+     la facture.
+   - **Jieun n'aura besoin d'aucun compte Claude.** C'est le site qui appelle
+     l'API, sur le compte de Pierre. Le copier-coller d'aujourd'hui disparaît.
+
+   En attendant, l'espace professeur donne la consigne toute prête et relit la
+   réponse.
+4. **Réveil automatique de Supabase** — sans lui, le projet gratuit se met en
    pause après 7 jours d'inactivité et le site se retrouve vide.
 
 ## Git : le dépôt ne doit pas vivre dans OneDrive
