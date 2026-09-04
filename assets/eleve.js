@@ -428,7 +428,7 @@
     if (!fini || remonte[marque]) return;
     remonte[marque] = true;
     Base.enregistrerReponse(cleUrl, courante.id, etat.rep,
-                            score(), courante.questions.length);
+                            score(), courante.questions.length, courante.titre);
   }
 
   function charger(l) {

@@ -200,7 +200,7 @@ window.Base = (function () {
         .then(function (r) {
           if (r.error) throw new Error(r.error.message);
           return r.data.map(function (x) {
-            return { lecon: x.lecon_id, eleve: x.eleve_id,
+            return { lecon: x.lecon_id, eleve: x.eleve_id, intitule: x.intitule || '',
                      score: x.score, total: x.total, le: x.envoye_le };
           });
         });
@@ -305,7 +305,7 @@ window.Base = (function () {
     });
   }
 
-  function enregistrerReponse(cleUrl, leconId, choix, score, total) {
+  function enregistrerReponse(cleUrl, leconId, choix, score, total, intitule) {
     return demarrer().then(function () {
       if (!reel) {
         /* En mode local on enregistre quand même : c'est ce qui permet
@@ -313,15 +313,19 @@ window.Base = (function () {
         var d = lire();
         var e = d.eleves.filter(function (x) { return x.cle === String(cleUrl).toLowerCase(); })[0];
         if (!e) return;
-        d.reponses.unshift({ lecon: leconId, eleve: e.id,
+        d.reponses.unshift({ lecon: leconId, eleve: e.id, intitule: intitule || '',
                              score: score, total: total, le: new Date().toISOString() });
         d.reponses = d.reponses.slice(0, 200);
         ecrire(d);
         return;
       }
+      /* En ligne, le score n'est pas envoyé : la fonction le recalcule depuis
+         les bonnes réponses de la base, fige l'intitulé et les questions, et
+         range le tout dans le passage. Rien ne dépend plus de ce que le
+         navigateur affirme. */
       return sb.rpc('enregistrer_reponse', {
-        cle_url: String(cleUrl).toLowerCase(), p_lecon: leconId,
-        p_choix: choix, p_score: score, p_total: total
+        cle_url: String(cleUrl).toLowerCase(), p_lecon: leconId, p_test: null,
+        p_choix: choix
       }).then(function (r) {
         if (r.error) console.warn('Réponse non enregistrée :', r.error.message);
       });

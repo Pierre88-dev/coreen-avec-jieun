@@ -128,7 +128,7 @@
           rs.map(function (r) {
             var part = r.total ? r.score / r.total : 0;
             return '<tr>' +
-              '<td>' + ech(titre[r.lecon] || 'Leçon supprimée') + '</td>' +
+              '<td>' + ech(titre[r.lecon] || r.intitule || 'Leçon supprimée') + '</td>' +
               '<td class="pale">' + quand(r.le) + '</td>' +
               '<td class="num"><span class="sc ' + (part < .6 ? 'bas' : '') + '">' +
                 r.score + '/' + r.total + '</span></td>' +
