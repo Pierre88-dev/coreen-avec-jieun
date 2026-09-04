@@ -199,7 +199,8 @@
     brouillon = {
       id: null, eleve: eleveCourant.id, numero: n,
       date: new Date().toISOString().slice(0, 10),
-      titre: '', titreKo: '', recap: '', docs: [], questions: [], publiee: false
+      titre: '', titreKo: '', recap: '', porteeQcm: '',
+      docs: [], questions: [], publiee: false
     };
     modifie = true; dessiner(); marquerActive();
   });
@@ -255,6 +256,13 @@
 
       '<section class="bloc-form">' +
         '<h3>Le QCM</h3>' +
+        champ('Sur quoi porte le QCM ? <span class="opt2">facultatif</span>',
+          '<input id="fPortee" type="text" value="' + att(b.porteeQcm || '') +
+          '" placeholder="les chapitres 1 à 3">' +
+          '<p class="aide">Le document joint contient souvent plus que ce qui a été ' +
+          'vu en cours. Écris ici la portion à couvrir — « les chapitres 1 à 3 », ' +
+          '« jusqu’à la page 4 ». Laissé vide, le QCM porte sur tout le document. ' +
+          'Cette ligne part dans la consigne ; l’élève ne la voit jamais.</p>') +
         '<div class="atelier-qcm">' +
           '<button type="button" class="bt sec" id="copierPrompt">Copier la consigne pour Claude</button>' +
           '<button type="button" class="bt sec" id="ouvrirColle">Coller un QCM</button>' +
@@ -376,9 +384,12 @@
   /* ---------- la consigne pour Claude ------------------------------------- */
 
   function consigne() {
+    var portee = (brouillon.porteeQcm || '').trim();
     return 'Tu prépares un QCM de coréen pour un élève francophone débutant.\n\n' +
       'Voici le récapitulatif de la leçon, écrit par sa professeure :\n\n' +
       '---\n' + (brouillon.recap || '(récapitulatif à compléter)') + '\n---\n\n' +
+      (portee ? 'Le QCM doit porter sur ' + portee + ', et sur rien d’autre : ' +
+                'ignore ce qui sort de cette portion, même si le document en parle.\n\n' : '') +
       'Fabrique 12 questions à choix multiple qui testent précisément ce contenu.\n' +
       'Règles :\n' +
       '- exactement 4 propositions par question, une seule juste ;\n' +
@@ -415,14 +426,15 @@
   /* ---------- branchements ------------------------------------------------ */
 
   function brancher() {
-    ['fTitre', 'fTitreKo', 'fNum', 'fDate', 'fRecap'].forEach(function (id) {
+    ['fTitre', 'fTitreKo', 'fNum', 'fDate', 'fRecap', 'fPortee'].forEach(function (id) {
       document.getElementById(id).addEventListener('input', function () {
         var e = document.getElementById(id);
-        if (id === 'fTitre')   brouillon.titre   = e.value;
-        if (id === 'fTitreKo') brouillon.titreKo = e.value;
-        if (id === 'fNum')     brouillon.numero  = e.value ? +e.value : null;
-        if (id === 'fDate')    brouillon.date    = e.value;
-        if (id === 'fRecap')   brouillon.recap   = e.value;
+        if (id === 'fTitre')   brouillon.titre     = e.value;
+        if (id === 'fTitreKo') brouillon.titreKo   = e.value;
+        if (id === 'fNum')     brouillon.numero    = e.value ? +e.value : null;
+        if (id === 'fDate')    brouillon.date      = e.value;
+        if (id === 'fRecap')   brouillon.recap     = e.value;
+        if (id === 'fPortee')  brouillon.porteeQcm = e.value;
         toucher();
       });
     });

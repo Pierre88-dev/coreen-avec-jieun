@@ -148,7 +148,7 @@ window.Base = (function () {
           .sort(function (a, b) { return b.date.localeCompare(a.date); });
       }
       return sb.from('lecons')
-        .select('id,eleve_id,numero,date,titre,titre_ko,recap,publiee')
+        .select('id,eleve_id,numero,date,titre,titre_ko,recap,portee_qcm,publiee')
         .eq('eleve_id', eleveId).order('date', { ascending: false })
         .then(function (r) {
           if (r.error) throw new Error(r.error.message);
@@ -185,6 +185,7 @@ window.Base = (function () {
     return {
       id: l.id, eleve: l.eleve_id, numero: l.numero, date: l.date,
       titre: l.titre, titreKo: l.titre_ko || '', recap: l.recap || '',
+      porteeQcm: l.portee_qcm || '',
       publiee: !!l.publiee, docs: [], questions: []
     };
   }
@@ -224,7 +225,8 @@ window.Base = (function () {
       var champs = {
         eleve_id: l.eleve, numero: l.numero || null, date: l.date,
         titre: l.titre, titre_ko: l.titreKo || null,
-        recap: l.recap || '', publiee: !!l.publiee
+        recap: l.recap || '', portee_qcm: l.porteeQcm || '',
+        publiee: !!l.publiee
       };
       var etape = l.id
         ? sb.from('lecons').update(champs).eq('id', l.id).select('id').single()

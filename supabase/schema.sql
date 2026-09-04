@@ -23,6 +23,7 @@ create table if not exists lecons (
   titre     text not null,
   titre_ko  text,
   recap     text not null default '',
+  portee_qcm text not null default '',       -- sur quoi porte le QCM dans le PDF
   publiee   boolean not null default false,  -- brouillon tant que faux
   cree_le   timestamptz not null default now()
 );
