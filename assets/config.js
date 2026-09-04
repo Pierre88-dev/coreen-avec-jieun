@@ -6,14 +6,18 @@
    ce soit.
 
    Pour passer en mode partagé, colle ici les deux valeurs de
-   Supabase > Project Settings > API. Elles sont publiques : elles finissent
-   dans la page, c'est prévu et sans danger — le schéma ferme toutes les
-   tables et n'expose que deux fonctions.
+   Supabase > Project Settings > API Keys. Elles sont publiques : elles
+   finissent dans la page, c'est prévu et sans danger — le schéma ferme toutes
+   les tables et n'expose que deux fonctions.
 
-   N'y colle JAMAIS la clé « service_role » : elle contourne toutes les
-   protections. */
+   SUPABASE_CLE attend la clé « publishable », qui commence par
+   `sb_publishable_`. L'ancienne clé « anon », une longue chaîne commençant par
+   `eyJ`, fonctionne encore mais Supabase l'abandonne fin 2026.
+
+   N'y colle JAMAIS une clé « secret » (`sb_secret_…`) ni l'ancienne
+   « service_role » : elles contournent toutes les protections. */
 
 window.CONFIG = {
-  SUPABASE_URL:  '',
-  SUPABASE_ANON: ''
+  SUPABASE_URL: '',
+  SUPABASE_CLE: ''
 };

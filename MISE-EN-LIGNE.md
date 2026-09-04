@@ -72,19 +72,25 @@ Ensuite, chaque `git push` redéploie tout seul.
 
 ### Les deux valeurs à me donner
 
-Menu de gauche : **Project Settings** → **API**. J'ai besoin de :
+Bouton **Connect** en haut du tableau de bord, ou menu de gauche
+**Project Settings** → **API Keys**. J'ai besoin de :
 
 - **Project URL** — de la forme `https://xxxxxxxxxxxx.supabase.co`
-- **anon public** — une longue chaîne commençant par `eyJ...`
+- la **clé publishable** — une chaîne courte commençant par `sb_publishable_`
+
+Si tu ne vois qu'une longue chaîne commençant par `eyJ`, c'est l'ancienne clé,
+appelée **anon** : elle marche encore, mais Supabase l'abandonne fin 2026.
+Dis-le-moi, on partira sur la nouvelle.
 
 Ces deux valeurs sont **publiques par nature** : elles finiront dans le code de
 la page, visibles par n'importe quel visiteur. C'est prévu — le schéma ferme
 toutes les tables et ne laisse passer que deux fonctions, qui exigent la clé
 privée de l'élève.
 
-**En revanche, ne me donne jamais la clé `service_role`** de la même page. Celle-là
-contourne toutes les protections. Si tu la colles quelque part par erreur,
-régénère-la depuis cet écran.
+**En revanche, ne me donne jamais une clé « secret »** (`sb_secret_…`, ou
+l'ancienne `service_role`) du même écran. Celles-là contournent toutes les
+protections. Si tu en colles une quelque part par erreur, révoque-la depuis cet
+écran et crées-en une autre.
 
 ---
 

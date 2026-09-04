@@ -10,7 +10,7 @@
 window.Base = (function () {
 
   var CFG   = window.CONFIG || {};
-  var reel  = !!(CFG.SUPABASE_URL && CFG.SUPABASE_ANON);
+  var reel  = !!(CFG.SUPABASE_URL && CFG.SUPABASE_CLE);
   var sb    = null;
   var pret  = null;
 
@@ -23,7 +23,7 @@ window.Base = (function () {
     pret = reel
       ? import('https://esm.sh/@supabase/supabase-js@2')
           .then(function (m) {
-            sb = m.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON);
+            sb = m.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_CLE);
           })
           .catch(function (e) {
             /* réseau coupé, CDN bloqué : on ne laisse pas la page muette */
