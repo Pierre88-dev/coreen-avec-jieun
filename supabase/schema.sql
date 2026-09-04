@@ -99,14 +99,22 @@ create index if not exists questions_test  on questions(test_id, ordre);
 -- lecon_id nul = fiche de référence permanente, visible par tout le monde.
 -- Deux leçons dupliquées pointent vers la MÊME url : le fichier n'est stocké
 -- qu'une fois, chaque leçon a sa ligne.
+--
+-- pages et taille sont relevés au téléversement. Ils servent à annoncer le
+-- coût d'une génération AVANT de la lancer : c'est le nombre de pages qui le
+-- détermine, et une estimation affichée vaut mieux qu'une facture découverte.
 create table if not exists documents (
   id       uuid primary key default gen_random_uuid(),
   lecon_id uuid references lecons(id) on delete cascade,
-  titre    text not null,
+  titre    text not null,                    -- ce que voit l'élève, pas le nom du fichier
   url      text not null,                    -- chemin dans le bucket, ou lien
   type     text,                             -- 'pdf', 'fiche interactive', ...
+  pages    int,                              -- nul si inconnu ou sans objet
+  taille_octets bigint,
   ordre    int not null default 0
 );
+alter table documents add column if not exists pages int;
+alter table documents add column if not exists taille_octets bigint;
 
 -- Un passage d'élève. Volontairement AUTONOME : il garde l'intitulé et une
 -- photographie des questions telles qu'elles étaient ce jour-là. Corriger la
