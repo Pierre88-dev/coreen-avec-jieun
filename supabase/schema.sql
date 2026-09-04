@@ -2,7 +2,12 @@
 --  Coréen avec Jieun — schéma Supabase
 --  À coller en entier dans : Supabase > SQL Editor > New query > Run
 --  Rejouable sans dégât : "if not exists" / "or replace" / "add column if not
---  exists" partout. Le rejouer sur une base déjà en service ne perd rien.
+--  exists" partout. Le rejouer sur une base déjà en service ne perd aucune
+--  donnée — les tables et colonnes déjà là sont laissées telles quelles.
+--  Réserve honnête : sur une base créée par une version ANTÉRIEURE de ce
+--  fichier, les contraintes ajoutées depuis ne seraient pas posées ; il
+--  faudrait les ajouter à la main. Sans objet tant que le schéma n'a jamais
+--  été joué.
 -- ============================================================================
 
 -- ---------------------------------------------------------------- tables ---
@@ -36,7 +41,13 @@ alter table lecons add column if not exists etiquettes text[] not null default '
 create index if not exists lecons_eleve on lecons(eleve_id, date desc);
 
 -- Un test groupé porte sur plusieurs leçons et a ses propres questions,
--- écrites à partir des documents de ces leçons.
+-- écrites à partir des documents de ces leçons. Il appartient à UN élève et
+-- se duplique vers l'autre, comme une leçon.
+--
+-- statut : la génération dure plusieurs minutes et coûte de l'argent. Jieun
+-- la lance et s'en va ; c'est cette case qui lui dit où on en est à son
+-- retour, et qui empêche de relancer — donc de repayer — un travail déjà
+-- en cours.
 create table if not exists tests (
   id           uuid primary key default gen_random_uuid(),
   eleve_id     text not null references eleves(id) on delete cascade,
@@ -44,10 +55,17 @@ create table if not exists tests (
   titre        text not null,
   consignes    text not null default '',      -- ce sur quoi insister, s'il y a lieu
   nb_questions int  not null default 20,
+  statut       text not null default 'brouillon',
+  erreur       text not null default '',      -- ce qui a lâché, si statut = 'echec'
+  genere_le    timestamptz,
   publiee      boolean not null default false,
   cree_le      timestamptz not null default now(),
-  constraint nb_questions_raisonnable check (nb_questions between 10 and 100)
+  constraint nb_questions_raisonnable check (nb_questions between 10 and 100),
+  constraint statut_connu check (statut in ('brouillon','en_cours','prete','echec'))
 );
+alter table tests add column if not exists statut    text not null default 'brouillon';
+alter table tests add column if not exists erreur    text not null default '';
+alter table tests add column if not exists genere_le timestamptz;
 create index if not exists tests_eleve on tests(eleve_id, date desc);
 
 -- Les leçons couvertes par un test.
@@ -112,7 +130,43 @@ alter table reponses alter column lecon_id drop not null;
 create index if not exists reponses_eleve on reponses(eleve_id, envoye_le desc);
 create index if not exists reponses_lecon on reponses(lecon_id, envoye_le desc);
 
--- La boîte à questions : l'élève dépose, Jieun lit. Pas de fil de discussion.
+-- Un parcours commencé mais pas fini. Sans ça, la progression ne vit que dans
+-- le navigateur : commencer un test de 100 questions sur le téléphone et le
+-- finir sur l'ordinateur repartirait de zéro. Une seule ligne par élève et par
+-- parcours, réécrite à chaque réponse ; elle disparaît quand le passage est
+-- enregistré pour de bon.
+create table if not exists progressions (
+  id       uuid primary key default gen_random_uuid(),
+  eleve_id text not null references eleves(id) on delete cascade,
+  lecon_id uuid references lecons(id) on delete cascade,
+  test_id  uuid references tests(id)  on delete cascade,
+  choix    int[] not null,
+  maj_le   timestamptz not null default now(),
+  constraint une_seule_cible check (num_nonnulls(lecon_id, test_id) = 1)
+);
+create unique index if not exists progressions_lecon
+  on progressions(eleve_id, lecon_id) where lecon_id is not null;
+create unique index if not exists progressions_test
+  on progressions(eleve_id, test_id)  where test_id  is not null;
+
+-- La trace de chaque appel à l'API, pour savoir ce que ça coûte réellement.
+-- Une facture est toujours plus facile à accepter quand on l'a vue venir.
+create table if not exists generations (
+  id             uuid primary key default gen_random_uuid(),
+  lecon_id       uuid references lecons(id) on delete set null,
+  test_id        uuid references tests(id)  on delete set null,
+  modele         text not null default '',
+  tokens_entree  int  not null default 0,
+  tokens_sortie  int  not null default 0,
+  cout_centimes  numeric(10,2) not null default 0,
+  statut         text not null default 'ok',
+  erreur         text not null default '',
+  cree_le        timestamptz not null default now()
+);
+create index if not exists generations_date on generations(cree_le desc);
+
+-- La boîte à questions : l'élève dépose, Jieun lit et répond au cours suivant.
+-- Pas de réponse écrite, donc pas de fil de discussion ni d'attente déçue.
 create table if not exists messages (
   id        uuid primary key default gen_random_uuid(),
   eleve_id  text not null references eleves(id) on delete cascade,
@@ -137,6 +191,8 @@ alter table tests_lecons enable row level security;
 alter table questions    enable row level security;
 alter table documents    enable row level security;
 alter table reponses     enable row level security;
+alter table progressions enable row level security;
+alter table generations  enable row level security;
 alter table messages     enable row level security;
 
 -- Jieun, une fois connectée, a tous les droits.
@@ -144,7 +200,8 @@ do $$
 declare t text;
 begin
   foreach t in array array['eleves','lecons','tests','tests_lecons','questions',
-                           'documents','reponses','messages'] loop
+                           'documents','reponses','progressions','generations',
+                           'messages'] loop
     execute format('drop policy if exists prof_tout on %I', t);
     execute format(
       'create policy prof_tout on %I for all to authenticated using (true) with check (true)', t);
@@ -195,7 +252,12 @@ as $$
                                order by q.ordre)
                                from questions q where q.test_id = t.id), '[]'::jsonb)
       ) order by t.date desc)
-      from tests t where t.eleve_id = e.id and t.publiee), '[]'::jsonb)
+      from tests t
+      where t.eleve_id = e.id and t.publiee and t.statut = 'prete'), '[]'::jsonb),
+    'progressions', coalesce((
+      select jsonb_agg(jsonb_build_object(
+        'lecon', p.lecon_id, 'test', p.test_id, 'choix', p.choix))
+      from progressions p where p.eleve_id = e.id), '[]'::jsonb)
   ) end
   from eleves e where e.cle = lower(cle_url) and e.actif;
 $$;
@@ -263,6 +325,50 @@ begin
   insert into reponses (lecon_id, test_id, eleve_id, intitule, questions_figees,
                         choix, score, total)
   values (p_lecon, p_test, v_eleve, v_intitule, v_questions, p_choix, v_score, v_total);
+
+  -- Le parcours est fini : la reprise en cours n'a plus lieu d'être.
+  delete from progressions
+   where eleve_id = v_eleve
+     and lecon_id is not distinct from p_lecon
+     and test_id  is not distinct from p_test;
+end $$;
+
+-- Range la progression d'un parcours commencé, pour le reprendre ailleurs.
+-- Une seule ligne par élève et par parcours, réécrite à chaque réponse.
+create or replace function enregistrer_progression(
+  cle_url text, p_lecon uuid, p_test uuid, p_choix int[])
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare v_eleve text;
+begin
+  select id into v_eleve from eleves where cle = lower(cle_url) and actif;
+  if v_eleve is null then
+    raise exception 'cle inconnue';
+  end if;
+  if num_nonnulls(p_lecon, p_test) <> 1 then
+    raise exception 'il faut une lecon ou un test, pas les deux';
+  end if;
+
+  if p_lecon is not null then
+    if not exists (select 1 from lecons where id = p_lecon and eleve_id = v_eleve) then
+      raise exception 'cette lecon n''appartient pas a cet eleve';
+    end if;
+    insert into progressions (eleve_id, lecon_id, choix)
+    values (v_eleve, p_lecon, p_choix)
+    on conflict (eleve_id, lecon_id) where lecon_id is not null
+    do update set choix = excluded.choix, maj_le = now();
+  else
+    if not exists (select 1 from tests where id = p_test and eleve_id = v_eleve) then
+      raise exception 'ce test n''appartient pas a cet eleve';
+    end if;
+    insert into progressions (eleve_id, test_id, choix)
+    values (v_eleve, p_test, p_choix)
+    on conflict (eleve_id, test_id) where test_id is not null
+    do update set choix = excluded.choix, maj_le = now();
+  end if;
 end $$;
 
 -- La boîte à questions. Même porte étroite : la clé, et rien d'autre.
@@ -305,12 +411,14 @@ begin
   values (v_eleve, p_lecon, v_intitule, left(btrim(p_texte), 2000));
 end $$;
 
-revoke all on function espace_eleve(text)                        from public, anon;
-revoke all on function enregistrer_reponse(text, uuid, uuid, int[]) from public, anon;
-revoke all on function poser_question(text, uuid, text)          from public, anon;
-grant execute on function espace_eleve(text)                     to anon, authenticated;
+revoke all on function espace_eleve(text)                              from public, anon;
+revoke all on function enregistrer_reponse(text, uuid, uuid, int[])    from public, anon;
+revoke all on function enregistrer_progression(text, uuid, uuid, int[]) from public, anon;
+revoke all on function poser_question(text, uuid, text)                from public, anon;
+grant execute on function espace_eleve(text)                           to anon, authenticated;
 grant execute on function enregistrer_reponse(text, uuid, uuid, int[]) to anon, authenticated;
-grant execute on function poser_question(text, uuid, text)       to anon, authenticated;
+grant execute on function enregistrer_progression(text, uuid, uuid, int[]) to anon, authenticated;
+grant execute on function poser_question(text, uuid, text)             to anon, authenticated;
 
 -- L'ancienne signature à cinq arguments n'a plus lieu d'être.
 drop function if exists enregistrer_reponse(text, uuid, text, int[], int, int);
