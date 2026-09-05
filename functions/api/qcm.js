@@ -330,9 +330,10 @@ function consigne(nombre, portee, recap) {
        'la réponse ;\n' +
        '- le hangul s’écrit tel quel, sans translittération dans l’énoncé ;\n' +
        '- deux questions ne portent jamais sur le même point.\n\n' +
-       'Tu peux utiliser <b>gras</b> et <span class="hg">한글</span> dans les ' +
-       'énoncés, les propositions et les explications, et rien d’autre comme ' +
-       'balise.\n\n' +
+       'N’écris AUCUNE balise HTML autour du coréen : le site le met en ' +
+       'couleur tout seul à l’affichage. Écris le hangul nu, jamais entouré ' +
+       'd’un <span>. La seule balise admise est <b>gras</b>, et seulement ' +
+       'pour insister sur un point.\n\n' +
        'Réponds par un objet JSON : {"questions":[{"t":"énoncé",' +
        '"o":["A","B","C","D"],"r":0,"e":"explication"}]}, où « r » est ' +
        'l’indice de la bonne réponse, de 0 à 3.';

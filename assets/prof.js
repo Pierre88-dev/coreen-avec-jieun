@@ -631,8 +631,9 @@
       'Réponds UNIQUEMENT par un tableau JSON, sans texte autour, de cette forme :\n' +
       '[{"t":"énoncé","o":["A","B","C","D"],"r":0,"e":"explication"}]\n\n' +
       'où « r » est l’indice de la bonne réponse, de 0 à 3.\n' +
-      'Dans « t », « o » et « e » tu peux utiliser <b>gras</b> et ' +
-      '<span class="hg">한글</span> pour mettre le coréen en valeur.';
+      'N’écris aucune balise autour du coréen : le site le met en couleur ' +
+      'tout seul. Écris le hangul nu, jamais entouré d’un <span>. Seul ' +
+      '<b>gras</b> est admis.';
   }
 
   function lireJson(txt) {

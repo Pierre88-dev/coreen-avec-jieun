@@ -338,7 +338,7 @@
 
       html += '<div class="q"><div class="tete">' +
               '<span class="num">' + (i + 1 < 10 ? '0' : '') + (i + 1) + '</span>' +
-              '<span class="enonce">' + q.t + '</span></div><div class="reps">';
+              '<span class="enonce">' + hangul(q.t) + '</span></div><div class="reps">';
 
       q.o.forEach(function (opt, j) {
         var cl = 'opt', et = '';
@@ -350,14 +350,14 @@
         html += '<button type="button" class="' + cl + '" data-q="' + i + '" data-o="' + j + '"' +
                 (revele ? ' disabled' : '') + '>' +
                 '<span class="lt">' + 'ABCD'[j] + '</span>' +
-                '<span class="tx">' + opt + '</span>' +
+                '<span class="tx">' + hangul(opt) + '</span>' +
                 (et ? '<span class="et">' + et + '</span>' : '') + '</button>';
       });
 
       html += '</div>';
       if (revele) {
         html += '<div class="pourquoi"><span class="k">POURQUOI</span>' +
-                '<span class="tx">' + q.e + '</span></div>';
+                '<span class="tx">' + hangul(q.e) + '</span></div>';
       }
       html += '</div>';
     });
@@ -465,7 +465,16 @@
     }).join('');
   }
 
-  /* Colore les suites de caractères coréens sans toucher au reste */
+  /* Colore les suites de caractères coréens sans toucher au reste.
+
+     Sert au récapitulatif ET au QCM. Côté QCM c'est une reprise du
+     5 septembre 2026 : le coréen y était coloré par des <span class="hg">
+     que le modèle écrivait lui-même, ce qui rendait l'éditeur de Jieun
+     illisible — elle relisait des balises au lieu de relire des questions.
+     La couleur se décide ici, à l'affichage, et la consigne ne demande plus
+     aucune balise. Les questions écrites avant gardent les leurs : la
+     coloration les enveloppe une seconde fois, ce qui ne change rien à l'œil
+     puisque c'est la même classe. */
   function hangul(s) {
     return s.replace(/[ᄀ-ᇿ㄰-㆏가-힣]+/g, function (m) {
       return '<span class="hg">' + m + '</span>';
