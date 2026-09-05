@@ -75,8 +75,13 @@
   /* Le lien privé de l'élève. Il ne figure dans aucun fichier du site :
      il vient de la base, et c'est ici que Jieun le récupère pour l'envoyer. */
   function dessinerLien() {
-    var lien = location.href.replace(/prof\.html.*$/, '') +
-               'eleve.html?e=' + encodeURIComponent(eleveCourant.cle);
+    /* new URL plutôt qu'un découpage de location.href : Cloudflare Pages sert
+       la page sans son extension, l'adresse est donc « /prof » et non
+       « /prof.html ». Chercher « prof.html » n'y trouvait rien, et les deux
+       morceaux se collaient en « /profeleve.html ». Le navigateur, lui, résout
+       le chemin relatif correctement dans les deux cas. */
+    var lien = new URL('eleve.html?e=' + encodeURIComponent(eleveCourant.cle),
+                       location.href).href;
     document.getElementById('lienEleve').innerHTML =
       '<div class="lien-prive">' +
         '<span class="lbl2">Son lien privé</span>' +
