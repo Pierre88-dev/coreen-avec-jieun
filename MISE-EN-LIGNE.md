@@ -1,7 +1,7 @@
 # Mise en ligne — ce que Pierre doit faire
 
-Deux étapes sur trois sont **faites**. Il ne reste que Supabase, en bas de page.
-Compte une quinzaine de minutes.
+**Les trois étapes sont faites.** Cette page ne sert plus qu'à retrouver
+comment, et à refaire le chemin si un jour il faut repartir de zéro.
 
 ---
 
@@ -34,7 +34,14 @@ Deux choses à savoir si tu dois y retourner :
   doit être rempli à `master`. Framework preset **None**, build command et build
   output directory **vides** : il n'y a rien à compiler.
 
-## 3. Supabase — la base de données, à faire
+## 3. Supabase — fait le 5 septembre 2026 ✅
+
+Projet `gatxsrpwskdbsrulqdon`, région West EU (Paris), plan gratuit. Les deux
+valeurs sont dans `assets/config.js` et le site est passé en mode partagé.
+À la création, garder cochées les deux premières cases de sécurité : le schéma
+ne pose aucun `grant` explicite, il compte sur *Automatically expose new
+tables*. RLS est activé table par table dans le fichier, la troisième case est
+donc inutile.
 
 1. Sur **supabase.com**, **Start your project**. Tu peux te connecter avec
    ton compte GitHub, ça évite un mot de passe de plus.

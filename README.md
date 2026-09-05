@@ -22,12 +22,13 @@ afficherait sinon les liens privés des élèves.
 
 ## Les deux modes
 
-Tant que `assets/config.js` est vide, **tout tourne en mode local** : les leçons
-écrites dans l'espace professeur vivent dans le navigateur, et l'espace élève
-les lit au même endroit. Tout est utilisable, rien n'est partagé entre appareils.
+Le site est **en mode partagé depuis le 5 septembre 2026** : `assets/config.js`
+porte l'URL et la clé publishable du projet Supabase `gatxsrpwskdbsrulqdon`, et
+`assets/base.js` a basculé seul, sans qu'aucun autre fichier ne change.
 
-Dès que les deux valeurs Supabase y sont collées, le site bascule seul.
-Aucun autre fichier ne change — c'est tout l'intérêt de `assets/base.js`.
+Le mode local existe toujours : vider les deux valeurs de `config.js` y ramène
+le site entier, leçons dans le navigateur, rien de partagé. C'est le filet pour
+essayer une idée sans toucher à la base.
 
 ## Les fichiers
 
@@ -44,7 +45,9 @@ Aucun autre fichier ne change — c'est tout l'intérêt de `assets/base.js`.
 | `assets/data-local.js` | Contenu de démarrage du mode local. **Clés de démo uniquement** |
 | `assets/demo.js` | Le mois de cours fictif |
 | `assets/style.css` | Toute la mise en forme |
-| `supabase/schema.sql` | Le schéma à coller dans Supabase |
+| `supabase/schema.sql` | Le schéma, commenté. **La référence, celle qu'on modifie** |
+| `supabase/schema-a-coller.sql` | Le même sans commentaires. **C'est celui-ci qui va dans l'éditeur Supabase** |
+| `supabase/sans-commentaires.py` | Régénère le second depuis le premier |
 | `DESIGN.md` | Le monde visuel. **À lire avant toute retouche d'interface** |
 | `MISE-EN-LIGNE.md` | Les comptes à créer, pas à pas |
 
@@ -104,8 +107,9 @@ les écrire, avant que la base ne contienne de vraies leçons.
 
 L'ordre n'est pas négociable : chaque étape a besoin de la précédente.
 
-1. **Le projet Supabase** — sans lui le site reste en mode local, chaque
-   navigateur dans son coin. Voir `MISE-EN-LIGNE.md`.
+1. ~~**Le projet Supabase**~~ — fait le 5 septembre 2026. Projet
+   `gatxsrpwskdbsrulqdon`, dix tables, quatre fonctions, RLS partout. Le site
+   public lit la base.
 2. **Dépôt de fichiers** — un document se déclare encore par son chemin ;
    téléverser un PDF depuis l'ordinateur demande Supabase Storage.
 3. **Bouton « Générer le QCM »**, et il vient **du PDF de la leçon**, pas du
