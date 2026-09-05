@@ -183,37 +183,22 @@ les renvois d'un fichier à l'autre ne se décalent pas.
    le premier déclenchement à la main a répondu HTTP 200. Il **empêche** la
    mise en pause, il ne la répare pas.
 
-## Git : le dépôt ne doit pas vivre dans OneDrive
+## Git : le projet ne vit pas dans OneDrive
 
-Ce dossier de travail est **dans OneDrive**, et OneDrive corrompt les dépôts
-git : conflits sur `.git/index`, fichiers « copie en conflit » au milieu des
-objets, et fichiers rendus « à la demande » que git ne peut plus lire.
+OneDrive corrompt les dépôts git — conflits sur `.git/index`, fichiers « copie
+en conflit » au milieu des objets, fichiers rendus « à la demande » que git ne
+peut plus lire. Le projet a longtemps contourné le problème par un montage
+`git init --separate-git-dir` : fichiers de travail dans OneDrive, base git
+dans `C:\Projets`, les deux reliés par un fichier `.git` de 41 octets.
 
-La solution n'est pas de renoncer à git, ni de déplacer le projet. C'est de
-**séparer les deux** : les fichiers de travail restent ici, la base git vit
-ailleurs. C'est **déjà fait**, par cette commande lancée une fois :
+**Depuis le 5 septembre 2026, ce montage n'existe plus.** Le projet entier vit
+dans `C:\Projets\coreen-avec-jieun`, un dossier ordinaire avec un `.git`
+ordinaire dedans. `git add`, `git commit`, `git push` s'utilisent normalement,
+et il n'y a plus aucune règle particulière à retenir.
 
-```bash
-git init --separate-git-dir "C:\Projets\coreen-avec-jieun.git" .
-```
-
-Le dossier ne contient donc qu'un fichier `.git` de **41 octets** — un simple
-renvoi, qu'OneDrive synchronise sans risque — pendant que le dépôt lui-même
-vit dans `C:\Projets\coreen-avec-jieun.git`, hors de portée de la
-synchronisation. **Ne relance jamais `git init` ici** : le montage est fait,
-le refaire casserait ce renvoi.
-
-Ensuite, tout se passe normalement depuis ce dossier : `git add`, `git commit`,
-`git push`, sans rien changer à tes habitudes. Vérifié : commit, historique et
-suivi des fichiers fonctionnent.
-
-Deux conséquences à connaître :
-
-- **Le dépôt n'est pas sauvegardé par OneDrive**, seulement les fichiers de
-  travail. C'est GitHub qui sauvegardera l'historique.
-- Le premier `git push` doit être lancé par Pierre dans **son propre terminal** :
-  une fenêtre de connexion GitHub s'ouvre, et le shell d'agent ne peut pas
-  l'afficher.
+Ce que ça change : **OneDrive ne sauvegarde plus rien de ce projet**. C'est
+GitHub qui le sauvegarde — et lui, contrairement à OneDrive, sauvegarde aussi
+l'historique.
 
 ## Mise en ligne
 

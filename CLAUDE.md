@@ -1,16 +1,15 @@
 # Coréen avec Jieun — notes pour Claude Code
 
-Ce fichier ne porte que ce projet. Ce qui vaut pour tout le dossier — la langue,
-git hors OneDrive, la machine de Pierre, sa façon de travailler — est dans le
-`CLAUDE.md` du dossier parent, chargé en même temps que celui-ci.
+Ce fichier ne porte que ce projet. Ce qui vaut partout — la langue, la machine de
+Pierre, sa façon de travailler — est dans `~/.claude/CLAUDE.md`, chargé dans
+toutes les sessions en même temps que celui-ci.
 
-Ce dossier est **le seul exemplaire de travail** ; une copie périmée dort dans
-`C:\Projets\coreen-avec-jieun` (`OBSOLETE.md` l'y signale). Site statique, aucune
+Un dossier, un dépôt, ce fichier dedans : tout est dans
+`C:\Projets\coreen-avec-jieun`, hors OneDrive. Site statique, aucune
 compilation : `demarrer.cmd` pour l'essayer. Lire `README.md` avant d'y toucher,
-`DESIGN.md` avant toute retouche d'interface. Dépôt hors OneDrive dans
-`C:\Projets\coreen-avec-jieun.git`, remote `Pierre88-dev/coreen-avec-jieun`,
-**public** : rien de secret par construction, mais le schéma de la base y est
-lisible par tous.
+`DESIGN.md` avant toute retouche d'interface. Remote
+`Pierre88-dev/coreen-avec-jieun`, **public** : rien de secret par construction,
+mais le schéma de la base y est lisible par tous.
 
 ## Cloudflare Pages : chaque push met en ligne
 

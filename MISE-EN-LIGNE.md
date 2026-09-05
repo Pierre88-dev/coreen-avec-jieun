@@ -25,10 +25,9 @@ réveil GitHub continuent de fonctionner sur un dépôt privé.
 L'authentification GitHub est mémorisée sur la machine : **les push suivants
 peuvent être lancés par l'agent**, plus aucune fenêtre de connexion.
 
-Le dépôt vit hors OneDrive — le dossier ne contient qu'un fichier `.git` de
-41 octets, un renvoi vers `C:\Projets\coreen-avec-jieun.git`. **Ne relance
-jamais `git init` ici** : le montage est fait, le refaire casserait ce renvoi.
-`git add`, `git commit`, `git push` s'utilisent normalement depuis ce dossier.
+Le projet vit hors OneDrive, dans `C:\Projets\coreen-avec-jieun` : un dossier
+ordinaire, un dépôt ordinaire dedans. `git add`, `git commit`, `git push`
+s'utilisent normalement d'ici, sans précaution particulière.
 
 ## 2. Cloudflare — fait le 3 septembre 2026 ✅
 
