@@ -126,8 +126,8 @@ les renvois d'un fichier à l'autre ne se décalent pas.
    à la demande — s'il échoue, le fichier passe quand même, seule l'estimation
    de coût s'en trouve privée.
 
-   **Il reste à jouer le SQL** dans l'éditeur Supabase pour que le bucket
-   existe : voir `MISE-EN-LIGNE.md` § 4.
+   Le SQL a été joué le 5 septembre 2026 : le bucket existe, et un anonyme ne
+   peut ni y déposer un fichier ni créer de bucket.
 
 3. ~~**Bouton « Générer le QCM »**~~ — fait le 5 septembre 2026, et il vient
    bien **du PDF de la leçon**, pas du récapitulatif. Le récap garde son rôle :

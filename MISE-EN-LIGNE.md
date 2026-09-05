@@ -3,9 +3,8 @@
 **Les trois étapes de mise en ligne sont faites.** Cette page sert à
 retrouver comment, et à refaire le chemin si un jour il faut repartir de zéro.
 
-**Deux réglages restent à ta main**, et le site te le dit lui-même tant qu'ils
-ne sont pas faits : le SQL du dépôt de fichiers (§ 4) et la clé d'API dans
-Cloudflare (§ 5).
+**Un réglage reste à ta main**, et le site te le dit lui-même tant qu'il n'est
+pas fait : la clé d'API dans Cloudflare (§ 5).
 
 ---
 
@@ -113,7 +112,7 @@ protections. Si tu en colles une quelque part par erreur, révoque-la depuis cet
 
 ---
 
-## 4. Le dépôt de fichiers — à faire
+## 4. Le dépôt de fichiers — fait le 5 septembre 2026 ✅
 
 Jusqu'ici, joindre un document à une leçon voulait dire **taper son chemin à la
 main**. Pour téléverser un PDF depuis l'ordinateur, il faut un bucket Supabase
@@ -125,12 +124,16 @@ le repasser en entier ne détruit rien, il ajoute simplement ce qui manque.
 Message attendu : « Success. No rows returned ».
 
 Pour vérifier : menu de gauche → **Storage**. Un bucket **documents** doit
-apparaître, marqué *Public*. Vérifié le 5 septembre 2026 : il n'existe pas
-encore.
+apparaître, marqué *Public*.
 
-Tant que ce n'est pas fait, **rien d'autre ne casse** : le site tourne, les
-leçons se rédigent, les élèves passent leurs QCM. Seul le bouton « Téléverser
-un fichier » échoue, et le champ de chemin reste disponible comme avant.
+Vérifié le 5 septembre 2026, une fois le SQL passé : le bucket existe, un
+anonyme peut lire un fichier dont il connaît l'adresse mais **ne peut ni en
+déposer un, ni créer de bucket** — les deux tentatives sont refusées par la
+*row-level security*. Un fichier hors de la liste de types est refusé lui aussi.
+
+Piège rencontré ce jour-là : l'onglet SQL de Supabase **garde l'ancienne
+requête et son ancien « Success »**. Voir ce message ne prouve donc rien —
+c'est le `+` (New query) qu'il faut, puis coller, puis Run.
 
 Trois choses que ce SQL décide, et qu'il vaut mieux savoir :
 
