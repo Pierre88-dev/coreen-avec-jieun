@@ -733,8 +733,15 @@
 
     var sup = document.getElementById('supprimer');
     if (sup) sup.addEventListener('click', function () {
+      /* Cette phrase disait le contraire de ce que fait la base : reponses
+         range lecon_id « on delete set null », et un passage garde l'intitulé
+         et une photographie de ses questions. Il survit donc à la suppression.
+         Le dire juste évite deux erreurs : renoncer pour rien à effacer un
+         brouillon, et croire qu'on efface un mauvais score avec la leçon. */
       if (!confirm('Supprimer définitivement « ' + (brouillon.titre || 'cette leçon') +
-                   ' » ? Les réponses des élèves seront perdues avec elle.')) return;
+                   ' » ?\n\nLes passages déjà enregistrés par les élèves, eux, ' +
+                   'restent : ils gardent l’intitulé et les questions du jour. ' +
+                   'Supprimer une leçon n’efface aucun score.')) return;
       Base.supprimer(brouillon.id).then(function () {
         brouillon = null; modifie = false; rafraichirListe(); accueil();
       });
