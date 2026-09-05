@@ -18,6 +18,6 @@
    « service_role » : elles contournent toutes les protections. */
 
 window.CONFIG = {
-  SUPABASE_URL: '',
-  SUPABASE_CLE: ''
+  SUPABASE_URL: 'https://gatxsrpwskdbsrulqdon.supabase.co',
+  SUPABASE_CLE: 'sb_publishable_FgGYjwPe-XXN87VKHLuxTA_ahP4Tfyl'
 };
