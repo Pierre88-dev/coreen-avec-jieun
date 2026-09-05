@@ -98,8 +98,23 @@ protections. Si tu en colles une quelque part par erreur, révoque-la depuis cet
 
 ---
 
-## Le piège à connaître : la mise en veille
+## La mise en veille — réglée le 5 septembre 2026 ✅
 
 Un projet Supabase gratuit **se met en pause après 7 jours sans activité**, et le
-site se retrouve vide. Avec quelques QCM par mois, ça arrivera. On branchera un
-réveil automatique tous les 3 jours — gratuit, réglé une fois.
+site se retrouve vide. Avec quelques QCM par mois, ça arriverait.
+
+`.github/workflows/reveil-supabase.yml` appelle la base **une fois par jour**,
+à 05:17 UTC, avec la clé publishable. GitHub Actions, gratuit, rien à
+surveiller. Sept appels d'avance sur l'échéance : une exécution retardée ou
+sautée un jour de forte charge ne change rien.
+
+Deux choses à savoir :
+
+- Ce réveil **empêche** la mise en pause, il ne la **répare** pas. Une base déjà
+  endormie se relance à la main depuis le tableau de bord Supabase.
+- GitHub **suspend les workflows programmés** dans un dépôt sans activité
+  pendant 60 jours. Il prévient par mail avant, et un bouton les réactive.
+  Un simple `git push` remet le compteur à zéro.
+
+Pour le déclencher à la main : onglet **Actions** du dépôt → **Réveil
+Supabase** → **Run workflow**.

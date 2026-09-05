@@ -1,0 +1,46 @@
+# Empeche la base de s'endormir.
+#
+# Un projet Supabase gratuit se met en pause apres 7 jours sans le moindre
+# appel, et le site se retrouve vide. Avec quelques QCM par mois, ca arriverait.
+#
+# Ce reveil appelle la base une fois par jour. Sept chances avant l'echeance :
+# si GitHub decale ou saute une execution un jour de forte charge, ca passe
+# quand meme. Une execution dure quelques secondes.
+#
+# La cle utilisee est la cle publishable, deja publique dans assets/config.js :
+# elle finit dans la page que voit n'importe quel visiteur. Rien a cacher ici.
+#
+# Reserve : ce reveil EMPECHE la mise en pause, il ne la repare pas. Une base
+# deja endormie se relance a la main depuis le tableau de bord Supabase.
+
+name: Réveil Supabase
+
+on:
+  schedule:
+    # 05:17 UTC. La minute est volontairement decalee : les crons a l'heure
+    # pile sont les plus encombres chez GitHub, donc les plus souvent retardes.
+    - cron: '17 5 * * *'
+  workflow_dispatch:
+
+jobs:
+  reveiller:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Appeler la base
+        env:
+          URL: https://gatxsrpwskdbsrulqdon.supabase.co
+          CLE: sb_publishable_FgGYjwPe-XXN87VKHLuxTA_ahP4Tfyl
+        run: |
+          code=$(curl --silent --output /dev/null --write-out '%{http_code}' \
+            --max-time 30 \
+            --request POST "$URL/rest/v1/rpc/espace_eleve" \
+            --header "apikey: $CLE" \
+            --header "Authorization: Bearer $CLE" \
+            --header "Content-Type: application/json" \
+            --data '{"cle_url":"reveil-automatique"}')
+          echo "Réponse de la base : HTTP $code"
+          if [ "$code" != "200" ]; then
+            echo "::error::La base n'a pas répondu 200. Elle est peut-être déjà en pause."
+            exit 1
+          fi
+          echo "La base est réveillée."
