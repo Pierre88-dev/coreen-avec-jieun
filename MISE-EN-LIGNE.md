@@ -3,8 +3,8 @@
 **Les trois étapes de mise en ligne sont faites.** Cette page sert à
 retrouver comment, et à refaire le chemin si un jour il faut repartir de zéro.
 
-**Un réglage reste à ta main**, et le site te le dit lui-même tant qu'il n'est
-pas fait : la clé d'API dans Cloudflare (§ 5).
+**Tout est réglé.** Il reste un seul essai à faire, et il demande Jieun : une
+vraie génération, de bout en bout, sur une vraie leçon.
 
 ---
 
@@ -148,7 +148,7 @@ Trois choses que ce SQL décide, et qu'il vaut mieux savoir :
   vaut un refus au téléversement, quand tu as le fichier sous la main, qu'une
   erreur au moment de générer.
 
-## 5. La clé d'API Claude — à faire
+## 5. La clé d'API Claude — fait le 5 septembre 2026 ✅
 
 Le bouton **« Générer le QCM »** appelle l'API Claude. La clé est payante à
 l'usage : elle ne peut vivre ni dans la page, ni dans le dépôt, qui est servi
@@ -178,8 +178,15 @@ simplement indisponible.
    n'est plus réaffichée, y compris pour toi.
 
 4. **Redéploie.** Une variable ajoutée ne s'applique pas au déploiement en
-   cours : onglet **Deployments** → sur le dernier, *Retry deployment*. Un
-   `git push` fait la même chose.
+   cours : onglet **Deployments** → sur le dernier, *Retry deployment*. Le
+   bouton est **hors champ** — la ligne a une barre de défilement horizontale,
+   il faut la tirer vers la droite pour voir le menu **⋯**. Un `git push` fait
+   la même chose et se déclenche d'ici.
+
+Vérifié le 5 septembre 2026, une fois le redéploiement passé : une requête sans
+jeton, avec un jeton inventé, ou avec la clé publique du site est refusée dans
+les trois cas. Cette dernière compte — elle est lisible par n'importe quel
+visiteur et ne donne aucun accès à la génération.
 
 `EMAILS_PROF` est ce qui empêche n'importe qui de faire tourner ta facture : la
 fonction demande à Supabase à qui appartient la session, et refuse toute

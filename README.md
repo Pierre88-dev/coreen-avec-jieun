@@ -161,9 +161,8 @@ les renvois d'un fichier à l'autre ne se décalent pas.
    pour 12 questions sur 12 pages avec Opus 5, 10 avec Sonnet 5. Le coût réel
    revient de l'API après chaque appel, s'affiche, et va dans `generations`.
 
-   **Il reste à régler la clé d'API** dans Cloudflare : voir
-   `MISE-EN-LIGNE.md` § 5. Sans elle, le bouton répond par une phrase qui dit
-   ce qui manque ; rien d'autre ne change.
+   La clé est en place depuis le 5 septembre 2026. Reste l'essai de bout en
+   bout, qui demande Jieun : téléverser un vrai PDF et générer un vrai QCM.
 
 4. **Les tests groupés** — un QCM de 10 à 100 questions portant sur plusieurs
    leçons, généré depuis leurs PDF. Le schéma les prévoit (tables `tests`,
