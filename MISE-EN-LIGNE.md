@@ -43,8 +43,25 @@ Deux choses à savoir si tu dois y retourner :
    gestionnaire : il ne sera plus jamais affiché, et il ne me sert pas.
 3. Attends la fin de la création, environ deux minutes.
 4. Menu de gauche : **SQL Editor** → **New query**. Ouvre le fichier
-   `supabase/schema.sql` de ce dossier, colle **tout** son contenu, puis **Run**.
-   Le message attendu est « Success. No rows returned ».
+   **`supabase/schema-a-coller.sql`** de ce dossier, colle **tout** son contenu,
+   puis **Run**. Le message attendu est « Success. No rows returned ».
+
+   **Pas `schema.sql`.** Constaté le 5 septembre 2026 : l'éditeur SQL de
+   Supabase échoue sur la version commentée avec `syntax error at end of input`
+   en LINE 0, sans rien créer. Ses apostrophes françaises (`l'élève`,
+   `n'existe`) passent pour des ouvertures de chaîne dans son découpeur
+   d'instructions, qui avale alors tout le fichier. `schema-a-coller.sql` est
+   le même SQL sans les commentaires ; `sans-commentaires.py` le régénère
+   depuis la source :
+
+   ```
+   python supabase/sans-commentaires.py supabase/schema.sql supabase/schema-a-coller.sql
+   ```
+
+   Autre détail qui a coûté du temps : rien de ce que l'agent affiche dans la
+   conversation ne doit être copié — ses blocs de commande s'exécutent tout
+   seuls. Le plus sûr est d'ouvrir le fichier dans le Bloc-notes et d'y faire
+   Ctrl+A / Ctrl+C.
 5. Menu de gauche : **Authentication** → **Users** → **Add user** →
    *Create new user*. Email : l'adresse Naver de Jieun — tu l'as dans tes
    contacts, elle n'a pas sa place dans un historique git qui ne s'efface pas.
