@@ -45,6 +45,7 @@ essayer une idée sans toucher à la base.
 | `assets/data-local.js` | Contenu de démarrage du mode local. **Clés de démo uniquement** |
 | `assets/demo.js` | Le mois de cours fictif |
 | `assets/style.css` | Toute la mise en forme |
+| `functions/api/qcm.js` | **La fonction serveur.** Détient la clé d'API Claude, vérifie que l'appelant est Jieun, lit les PDF |
 | `supabase/schema.sql` | Le schéma, commenté. **La référence, celle qu'on modifie** |
 | `supabase/schema-a-coller.sql` | Le même sans commentaires. **C'est celui-ci qui va dans l'éditeur Supabase** |
 | `supabase/sans-commentaires.py` | Régénère le second depuis le premier |
@@ -60,6 +61,12 @@ essayer une idée sans toucher à la base.
   reprise possible
 - **Recherche** dans ses propres leçons, surlignage dans la page. Insensible
   aux accents et à la casse, fonctionne en hangul
+- **Téléversement des PDF** depuis l'ordinateur, dans Supabase Storage. Le
+  nombre de pages et le poids sont relevés au dépôt : c'est ce qui permet
+  d'annoncer le coût d'une génération avant de la lancer
+- **Bouton « Générer le QCM »** : l'API Claude lit le PDF de la leçon et rend
+  les questions. Choix du modèle à chaque fois, coût réel affiché après,
+  chaque appel tracé dans la table `generations`
 - Espace professeur complet : brouillon / publié, consigne prête à coller dans
   Claude, relecture du QCM collé, édition question par question
 - **Tableau de bord** des passages, par élève
@@ -105,43 +112,59 @@ les écrire, avant que la base ne contienne de vraies leçons.
 
 ## Ce qui reste à faire
 
-L'ordre n'est pas négociable : chaque étape a besoin de la précédente.
+L'ordre n'est pas négociable : chaque étape a besoin de la précédente. Les
+lignes barrées sont faites ; celles qui restent gardent leur numéro pour que
+les renvois d'un fichier à l'autre ne se décalent pas.
 
 1. ~~**Le projet Supabase**~~ — fait le 5 septembre 2026. Projet
    `gatxsrpwskdbsrulqdon`, dix tables, quatre fonctions, RLS partout. Le site
    public lit la base.
-2. **Dépôt de fichiers** — un document se déclare encore par son chemin ;
-   téléverser un PDF depuis l'ordinateur demande Supabase Storage.
-3. **Bouton « Générer le QCM »**, et il vient **du PDF de la leçon**, pas du
-   récapitulatif. Décision de Pierre du 3 septembre 2026 : Jieun ne saisit qu'un
-   mini-récap de ce qui a été vu en cours ; la matière, elle, est dans le PDF.
-   L'API Claude lit les PDF directement, y compris les scans, qu'elle lit comme
-   des images — ce sont ceux de Jieun. Le récap gardera son rôle : dire sur quoi
-   porter les questions.
+2. ~~**Dépôt de fichiers**~~ — fait le 5 septembre 2026. Bucket Supabase
+   Storage `documents`, créé par `schema.sql` et non à la main : une base se
+   rejoue, un clic ne se rejoue pas. Public en lecture, chemins tirés au sort,
+   32 Mo par fichier. Le nombre de pages est compté au dépôt par pdf.js, chargé
+   à la demande — s'il échoue, le fichier passe quand même, seule l'estimation
+   de coût s'en trouve privée.
 
-   Deux conséquences :
+   **Il reste à jouer le SQL** dans l'éditeur Supabase pour que le bucket
+   existe : voir `MISE-EN-LIGNE.md` § 4.
 
-   - La clé d'API vivra en **variable d'environnement Cloudflare**, lue par une
-     fonction serveur. Jamais dans la page, jamais dans le dépôt : elle est
-     payante à l'usage et le dépôt est servi publiquement. Cette fonction devra
-     vérifier que l'appelant est bien Jieun, sans quoi n'importe qui fait tourner
-     la facture.
-   - **Jieun n'aura besoin d'aucun compte Claude.** C'est le site qui appelle
-     l'API, sur le compte de Pierre. Le copier-coller d'aujourd'hui disparaît.
+3. ~~**Bouton « Générer le QCM »**~~ — fait le 5 septembre 2026, et il vient
+   bien **du PDF de la leçon**, pas du récapitulatif. Le récap garde son rôle :
+   dire sur quoi porter les questions, avec le champ « Sur quoi porte le QCM ? ».
 
-   En attendant, l'espace professeur donne la consigne toute prête et relit la
-   réponse.
+   Comment ça tient debout :
 
-   **Le modèle n'est pas encore choisi.** Opus 5 est le candidat par défaut : une
-   question fausse enseigne une erreur, et c'est Jieun qui devra la rattraper en
-   cours. Sonnet 5 coûte 2,5 fois moins. On générera le même QCM avec les deux
-   sur une vraie leçon, et **Jieun jugera** — elle seule sait si une question sur
-   les 받침 est juste.
+   - La clé d'API vit en **variable d'environnement Cloudflare**, lue par
+     `functions/api/qcm.js`. Jamais dans la page, jamais dans le dépôt.
+   - Cette fonction **vérifie qui appelle** : elle présente le jeton de session
+     à Supabase, qui dit à qui il appartient, et refuse toute adresse absente de
+     `EMAILS_PROF`. Vide, cette liste bloque tout le monde — une variable
+     oubliée doit fermer la porte, pas l'ouvrir.
+   - Elle **n'accepte que les adresses du bucket** de ce projet. Sans ce
+     garde-fou, ce serait une machine à faire lire n'importe quelle page du web
+     par l'API, aux frais de Pierre.
+   - L'API va chercher les PDF **elle-même**, par leur adresse. Le fichier ne
+     transite donc pas par la fonction, qui reste minuscule et rapide.
+   - **Jieun n'a besoin d'aucun compte Claude.** C'est le site qui appelle
+     l'API, sur le compte de Pierre.
 
-   Ordre de grandeur des coûts, mesuré sur ses vrais documents (12 et 29 pages,
-   du texte avec quelques illustrations) : **15 à 35 centimes** par QCM de leçon,
-   **près d'un euro** pour un test groupé de 100 questions, avec Opus 5. La
-   limite de l'API est de 600 pages et 32 Mo par envoi — hors de portée ici.
+   Le copier-coller reste en second rang, sous un filet : c'est le filet quand
+   la génération échoue, ou quand le site tourne en mode local.
+
+   **Le modèle n'est toujours pas tranché, et c'est volontaire** : le menu
+   propose Opus 5 (défaut) et Sonnet 5 à chaque génération. On fera le même QCM
+   avec les deux sur une vraie leçon, et **Jieun jugera** — elle seule sait si
+   une question sur les 받침 est juste.
+
+   Coûts, mesurés par l'estimation du site : **environ 26 centimes de dollar**
+   pour 12 questions sur 12 pages avec Opus 5, 10 avec Sonnet 5. Le coût réel
+   revient de l'API après chaque appel, s'affiche, et va dans `generations`.
+
+   **Il reste à régler la clé d'API** dans Cloudflare : voir
+   `MISE-EN-LIGNE.md` § 5. Sans elle, le bouton répond par une phrase qui dit
+   ce qui manque ; rien d'autre ne change.
+
 4. **Les tests groupés** — un QCM de 10 à 100 questions portant sur plusieurs
    leçons, généré depuis leurs PDF. Le schéma les prévoit (tables `tests`,
    `tests_lecons`), le site ne les affiche pas encore.
@@ -156,8 +179,10 @@ L'ordre n'est pas négociable : chaque étape a besoin de la précédente.
 8. **Dupliquer une leçon d'un élève à l'autre** — ne touche pas la base : les
    deux leçons pointent vers le même PDF, stocké une seule fois. La copie arrive
    en brouillon, QCM compris.
-9. **Réveil automatique de Supabase** — sans lui, le projet gratuit se met en
-   pause après 7 jours d'inactivité et le site se retrouve vide.
+9. ~~**Réveil automatique de Supabase**~~ — fait le 5 septembre 2026.
+   `.github/workflows/reveil-supabase.yml` appelle la base une fois par jour ;
+   le premier déclenchement à la main a répondu HTTP 200. Il **empêche** la
+   mise en pause, il ne la répare pas.
 
 ## Git : le dépôt ne doit pas vivre dans OneDrive
 

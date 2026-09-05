@@ -174,7 +174,8 @@ window.Base = (function () {
           return { t: q.enonce, o: q.options, r: q.bonne, e: q.explication };
         });
         l.docs = (rs[2].data || []).map(function (d) {
-          return { titre: d.titre, url: d.url, type: d.type };
+          return { titre: d.titre, url: d.url, type: d.type,
+                   pages: d.pages, taille: d.taille_octets };
         });
         return l;
       });
@@ -250,7 +251,8 @@ window.Base = (function () {
           .then(function () {
             var ds = (l.docs || []).map(function (d, i) {
               return { lecon_id: id, titre: d.titre, url: d.url,
-                       type: d.type || null, ordre: i };
+                       type: d.type || null, ordre: i,
+                       pages: d.pages || null, taille_octets: d.taille || null };
             });
             return ds.length ? sb.from('documents').insert(ds) : null;
           })
@@ -269,6 +271,100 @@ window.Base = (function () {
       }
       return sb.from('lecons').delete().eq('id', id).then(function (r) {
         if (r.error) throw new Error(r.error.message);
+      });
+    });
+  }
+
+  /* ------------------------------------------------------------------ */
+  /*  Le dépôt de fichiers                                               */
+  /* ------------------------------------------------------------------ */
+
+  /* Range un fichier dans le bucket et rend son adresse publique.
+
+     Chaque fichier part sous un uuid tiré au sort, et garde son nom derrière :
+     l'adresse reste imprévisible, mais le navigateur propose quand même
+     « lecon-3.pdf » quand l'élève enregistre. Deux téléversements du même
+     fichier ne se marchent donc jamais dessus — on ne remplace rien, on ajoute.
+
+     En mode local il n'y a nulle part où déposer : on le dit franchement
+     plutôt que de laisser croire que le fichier est parti quelque part. */
+  function televerser(fichier) {
+    return demarrer().then(function () {
+      if (!reel) {
+        throw new Error('Le site n’est pas relié à sa base : il n’y a pas encore ' +
+                        'd’endroit où déposer un fichier. Indique un chemin à la place.');
+      }
+      var nom = String(fichier.name || 'document')
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')  /* les accents cassent les URL */
+        .replace(/[^a-zA-Z0-9.\-_]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .slice(-80) || 'document';
+      var chemin = uuid() + '/' + nom;
+
+      return sb.storage.from('documents')
+        .upload(chemin, fichier, { contentType: fichier.type || 'application/octet-stream' })
+        .then(function (r) {
+          if (r.error) throw new Error(traduireDepot(r.error));
+          return sb.storage.from('documents').getPublicUrl(chemin).data.publicUrl;
+        });
+    });
+  }
+
+  function traduireDepot(e) {
+    var m = e.message || String(e);
+    if (/exceeded the maximum allowed size|payload too large/i.test(m)) {
+      return 'Ce fichier dépasse 32 Mo, la limite du dépôt.';
+    }
+    if (/mime type|not supported/i.test(m)) {
+      return 'Ce type de fichier n’est pas accepté : PDF ou image.';
+    }
+    if (/row-level security|not authorized|jwt/i.test(m)) {
+      return 'Ta session a expiré. Déconnecte-toi et reconnecte-toi.';
+    }
+    return m;
+  }
+
+  /* crypto.randomUUID n'existe qu'en HTTPS et sur localhost. Le site vit dans
+     les deux, mais un repli coûte trois lignes et évite une panne opaque. */
+  function uuid() {
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return 'x' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+  }
+
+  /* ------------------------------------------------------------------ */
+  /*  La génération du QCM par l'API Claude                              */
+  /* ------------------------------------------------------------------ */
+
+  /* Le site n'appelle JAMAIS l'API Claude directement : la clé est payante à
+     l'usage et tout ce que porte cette page est public. Il s'adresse à une
+     fonction serveur de Cloudflare (functions/api/qcm.js), qui détient la clé
+     et vérifie que l'appelant est bien Jieun. On lui transmet donc le jeton de
+     sa session Supabase — c'est lui qui prouve qui elle est. */
+  function genererQcm(demande) {
+    return demarrer().then(function () {
+      if (!reel) {
+        throw new Error('La génération passe par le serveur du site : elle ne ' +
+                        'fonctionne qu’en ligne. Utilise « Copier la consigne » ' +
+                        'en attendant.');
+      }
+      return sb.auth.getSession();
+    }).then(function (r) {
+      var jeton = r.data.session && r.data.session.access_token;
+      if (!jeton) throw new Error('Ta session a expiré. Reconnecte-toi.');
+
+      return fetch(new URL('api/qcm', location.href).href, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json',
+                   'Authorization': 'Bearer ' + jeton },
+        body: JSON.stringify(demande)
+      });
+    }).then(function (rep) {
+      return rep.json().catch(function () { return {}; }).then(function (d) {
+        if (!rep.ok) {
+          throw new Error(d.erreur ||
+            'Le serveur a répondu ' + rep.status + '. Réessaie dans un instant.');
+        }
+        return d;
       });
     });
   }
@@ -341,6 +437,7 @@ window.Base = (function () {
     session: session, connexion: connexion, deconnexion: deconnexion,
     eleves: eleves, leconsDe: leconsDe, lecon: lecon, resultats: resultats,
     enregistrer: enregistrer, supprimer: supprimer,
+    televerser: televerser, genererQcm: genererQcm,
     reinitialiserLocal: function () { try { localStorage.removeItem(CLE); } catch (e) {} }
   };
 

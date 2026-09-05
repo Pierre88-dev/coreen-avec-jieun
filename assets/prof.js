@@ -256,7 +256,14 @@
       '<section class="bloc-form">' +
         '<h3>Documents à joindre</h3>' +
         '<div id="listeDocs"></div>' +
-        '<button type="button" class="bt sec p" id="ajoutDoc">Ajouter un document</button>' +
+        '<input type="file" id="fFichier" accept="application/pdf,image/png,image/jpeg,image/webp" hidden>' +
+        '<div class="duo">' +
+          '<button type="button" class="bt sec" id="televerser">Téléverser un fichier</button>' +
+          '<button type="button" class="bt sec" id="ajoutDoc">Ajouter un lien</button>' +
+        '</div>' +
+        '<p class="aide" id="etatDoc">Le PDF de la leçon se téléverse ici. C’est ' +
+          'lui que lira l’API pour écrire le QCM — un simple lien vers une page ' +
+          'web ne s’y prête pas.</p>' +
       '</section>' +
 
       '<section class="bloc-form">' +
@@ -269,6 +276,18 @@
           '« jusqu’à la page 4 ». Laissé vide, le QCM porte sur tout le document. ' +
           'Cette ligne part dans la consigne ; l’élève ne la voit jamais.</p>') +
         '<div class="atelier-qcm">' +
+          '<button type="button" class="bt" id="genererQcm">Générer le QCM</button>' +
+          '<select class="select mince" id="fModele" aria-label="Modèle">' +
+            '<option value="claude-opus-5">Opus 5 — le plus sûr</option>' +
+            '<option value="claude-sonnet-5">Sonnet 5 — 2,5 fois moins cher</option>' +
+          '</select>' +
+          '<label class="nb"><span>questions</span>' +
+            '<input id="fNbQ" type="number" min="4" max="30" value="12"></label>' +
+        '</div>' +
+        '<p class="aide" id="estimeQcm"></p>' +
+        '<p class="erreur" id="erreurQcm" hidden></p>' +
+
+        '<div class="atelier-qcm repli">' +
           '<button type="button" class="bt sec" id="copierPrompt">Copier la consigne pour Claude</button>' +
           '<button type="button" class="bt sec" id="ouvrirColle">Coller un QCM</button>' +
           '<span class="cpt" id="cptQ"></span>' +
@@ -301,18 +320,33 @@
 
   /* ---------- documents -------------------------------------------------- */
 
+  /* Un document déposé se reconnaît à son adresse : elle pointe dans le
+     bucket. On ne s'appuie pas sur un drapeau qu'il faudrait maintenir — les
+     leçons déjà en base n'en auraient pas. */
+  function estDepose(d) {
+    return /\/storage\/v1\/object\/public\/documents\//.test(String(d.url || ''));
+  }
+
   function dessinerDocs() {
     var z = document.getElementById('listeDocs');
     if (!brouillon.docs.length) {
-      z.innerHTML = '<p class="aide">Aucun document. Une fiche PDF ou une page à ouvrir.</p>';
+      z.innerHTML = '<p class="aide">Aucun document.</p>';
       return;
     }
     z.innerHTML = brouillon.docs.map(function (d, i) {
-      return '<div class="ligne-doc">' +
-        '<input type="text" data-i="' + i + '" data-k="titre" value="' + att(d.titre) +
-          '" placeholder="Titre affiché">' +
-        '<input type="text" data-i="' + i + '" data-k="url" value="' + att(d.url) +
-          '" placeholder="ressources/fiche.pdf">' +
+      var titre = '<input type="text" data-i="' + i + '" data-k="titre" value="' +
+        att(d.titre) + '" placeholder="Titre affiché">';
+
+      /* Un fichier déposé n'a plus d'adresse à saisir : elle est décidée par
+         la base. On montre ce qu'elle vaut — le poids et le nombre de pages,
+         qui sont ce qui détermine le coût d'une génération. */
+      var milieu = estDepose(d)
+        ? '<a class="jeton-doc" href="' + att(d.url) + '" target="_blank" ' +
+            'rel="noopener" title="Ouvrir le fichier">' + ech(detailsDoc(d)) + '</a>'
+        : '<input type="text" data-i="' + i + '" data-k="url" value="' + att(d.url) +
+            '" placeholder="ressources/fiche.pdf">';
+
+      return '<div class="ligne-doc">' + titre + milieu +
         '<button type="button" class="x" data-sup="' + i + '" aria-label="Retirer">Retirer</button>' +
       '</div>';
     }).join('');
@@ -325,8 +359,88 @@
     });
     Array.prototype.forEach.call(z.querySelectorAll('[data-sup]'), function (b) {
       b.addEventListener('click', function () {
-        brouillon.docs.splice(+b.dataset.sup, 1); toucher(); dessinerDocs();
+        /* La ligne disparaît du brouillon, le fichier reste dans le bucket.
+           C'est voulu : rien ne se supprime, et deux leçons peuvent pointer
+           vers le même fichier. */
+        brouillon.docs.splice(+b.dataset.sup, 1);
+        toucher(); dessinerDocs(); dessinerEstimation();
       });
+    });
+  }
+
+  function detailsDoc(d) {
+    var bouts = [(d.type || 'fichier').toUpperCase()];
+    if (d.pages)  bouts.push(d.pages + (d.pages > 1 ? ' pages' : ' page'));
+    if (d.taille) bouts.push(poids(d.taille));
+    return bouts.join(' · ');
+  }
+
+  function poids(o) {
+    if (o < 1024) return o + ' o';
+    if (o < 1024 * 1024) return Math.round(o / 1024) + ' Ko';
+    return (o / 1048576).toFixed(1).replace('.', ',') + ' Mo';
+  }
+
+  /* ---------- le téléversement ------------------------------------------- */
+
+  function accueillirFichier(fichier) {
+    if (!fichier) return;
+    var etat = document.getElementById('etatDoc');
+    var bt = document.getElementById('televerser');
+
+    etat.textContent = 'Lecture de « ' + fichier.name + ' »…';
+    etat.className = 'aide';
+    bt.disabled = true;
+
+    compterPages(fichier).then(function (pages) {
+      etat.textContent = 'Envoi de « ' + fichier.name + ' »…';
+      return Base.televerser(fichier).then(function (url) {
+        brouillon.docs.push({
+          titre: sansExtension(fichier.name),
+          url: url,
+          type: /pdf/i.test(fichier.type) ? 'pdf' : 'image',
+          pages: pages,
+          taille: fichier.size
+        });
+        toucher(); dessinerDocs(); dessinerEstimation();
+        etat.textContent = 'Fichier déposé. Il partira avec la leçon au prochain ' +
+                           'enregistrement.';
+      });
+    }).catch(function (e) {
+      etat.textContent = e.message;
+      etat.className = 'aide err';
+    }).then(function () {
+      bt.disabled = false;
+      document.getElementById('fFichier').value = '';
+    });
+  }
+
+  function sansExtension(nom) {
+    return String(nom).replace(/\.[a-z0-9]+$/i, '').replace(/[_-]+/g, ' ').trim() ||
+           'Document';
+  }
+
+  /* Le nombre de pages, relevé une fois au dépôt, sert à annoncer le coût
+     d'une génération avant de la lancer. pdf.js est chargé à la demande et
+     uniquement ici : personne d'autre ne le paie, et s'il ne se charge pas,
+     on continue sans le compte plutôt que de bloquer le dépôt. */
+  function compterPages(fichier) {
+    var estPdf = /pdf/i.test(fichier.type) || /\.pdf$/i.test(fichier.name);
+    if (!estPdf) return Promise.resolve(null);
+
+    var base = 'https://esm.sh/pdfjs-dist@4.8.69/build/';
+    return import(base + 'pdf.mjs').then(function (m) {
+      m.GlobalWorkerOptions.workerSrc = base + 'pdf.worker.mjs';
+      return fichier.arrayBuffer().then(function (buf) {
+        return m.getDocument({ data: new Uint8Array(buf) }).promise;
+      });
+    }).then(function (doc) {
+      var n = doc.numPages;
+      doc.destroy();
+      return n;
+    }).catch(function (e) {
+      console.warn('Pages non comptées :', e);
+      return null;
     });
   }
 
@@ -383,6 +497,114 @@
       b.addEventListener('click', function () {
         brouillon.questions.splice(+b.dataset.supq, 1); toucher(); dessinerQuestions();
       });
+    });
+  }
+
+  /* ---------- la génération par l'API ------------------------------------- */
+
+  /* Ordres de grandeur, pas une facture. Une page de PDF vaut à peu près
+     2000 tokens qu'elle soit lue comme texte ou comme image ; une question
+     coûte environ 250 tokens à écrire, et le raisonnement du modèle en
+     consomme quelques milliers de plus. Le coût VRAI revient de l'API après
+     coup et s'affiche à la place — c'est lui qui fait foi, et c'est lui qui
+     est rangé dans la table « generations ». */
+  var TOKENS_PAR_PAGE = 2000, TOKENS_PAR_QUESTION = 250, TOKENS_REFLEXION = 2500;
+  var TARIFS = {                                  /* dollars par million de tokens */
+    'claude-opus-5':   { entree: 5, sortie: 25, nom: 'Opus 5' },
+    'claude-sonnet-5': { entree: 2, sortie: 10, nom: 'Sonnet 5' }
+  };
+
+  function docsDeposes() {
+    return brouillon.docs.filter(estDepose);
+  }
+
+  function dessinerEstimation() {
+    var z = document.getElementById('estimeQcm');
+    if (!z) return;
+
+    var ds = docsDeposes();
+    if (!ds.length) {
+      z.textContent = 'Téléverse d’abord le PDF de la leçon : c’est lui que ' +
+                      'l’API lit. Le récapitulatif sert seulement à cibler.';
+      return;
+    }
+
+    var modele = document.getElementById('fModele').value;
+    var nombre = +document.getElementById('fNbQ').value || 12;
+    var t = TARIFS[modele] || TARIFS['claude-opus-5'];
+
+    /* Une seule page inconnue et l'addition ne veut plus rien dire : on le
+       dit, plutôt que d'annoncer un chiffre faux. */
+    var pages = 0, incertain = false;
+    ds.forEach(function (d) { if (d.pages) pages += d.pages; else incertain = true; });
+
+    var quoi = ds.length + (ds.length > 1 ? ' documents' : ' document') +
+               (pages ? ', ' + pages + (pages > 1 ? ' pages' : ' page') : '');
+
+    if (incertain && !pages) {
+      z.textContent = quoi + ' · coût inconnu, le nombre de pages n’a pas pu ' +
+                      'être compté. Ce sera de l’ordre de quelques dizaines de centimes.';
+      return;
+    }
+
+    var dollars = (pages * TOKENS_PAR_PAGE / 1e6) * t.entree +
+                  ((nombre * TOKENS_PAR_QUESTION + TOKENS_REFLEXION) / 1e6) * t.sortie;
+
+    z.textContent = quoi + ' · environ ' + sous(dollars) + ' avec ' + t.nom +
+                    (incertain ? ' (au moins : un document n’a pas été compté)' : '') +
+                    '. Le coût réel s’affichera après.';
+  }
+
+  /* En centimes de dollar : l'API facture en dollars, on n'invente pas de
+     taux de change. */
+  function sous(dollars) {
+    var c = dollars * 100;
+    if (c < 1) return 'moins d’un centime';
+    return (c < 10 ? c.toFixed(1).replace('.', ',') : Math.round(c)) + ' ¢';
+  }
+
+  function lancerGeneration() {
+    var err = document.getElementById('erreurQcm');
+    var bt  = document.getElementById('genererQcm');
+    var z   = document.getElementById('estimeQcm');
+    err.hidden = true;
+
+    var ds = docsDeposes();
+    if (!ds.length) {
+      err.textContent = 'Il faut d’abord téléverser le PDF de la leçon.';
+      err.hidden = false; return;
+    }
+    if (brouillon.questions.length &&
+        !confirm('Remplacer les ' + brouillon.questions.length +
+                 ' questions existantes par celles que Claude va écrire ?')) return;
+
+    var modele = document.getElementById('fModele').value;
+    var nombre = +document.getElementById('fNbQ').value || 12;
+
+    bt.disabled = true;
+    var t0 = Date.now();
+    z.textContent = 'Claude lit le document… cela prend en général une minute.';
+
+    Base.genererQcm({
+      modele: modele,
+      nombre: nombre,
+      leconId: brouillon.id || null,
+      portee: brouillon.porteeQcm || '',
+      recap: brouillon.recap || '',
+      documents: ds.map(function (d) { return d.url; })
+    }).then(function (r) {
+      brouillon.questions = r.questions;
+      toucher(); dessinerQuestions();
+      var nom = (TARIFS[r.modele] || {}).nom || r.modele;
+      z.textContent = r.questions.length + ' questions écrites par ' + nom +
+        ' en ' + Math.round((Date.now() - t0) / 1000) + ' s, pour ' +
+        sous(r.centimes / 100) + '. Relis-les avant de publier.';
+    }).catch(function (e) {
+      err.textContent = e.message;
+      err.hidden = false;
+      dessinerEstimation();
+    }).then(function () {
+      bt.disabled = false;
     });
   }
 
@@ -454,6 +676,19 @@
     document.getElementById('ajoutDoc').addEventListener('click', function () {
       brouillon.docs.push({ titre: '', url: '', type: '' }); toucher(); dessinerDocs();
     });
+
+    var champFichier = document.getElementById('fFichier');
+    document.getElementById('televerser').addEventListener('click', function () {
+      champFichier.click();
+    });
+    champFichier.addEventListener('change', function () {
+      accueillirFichier(champFichier.files && champFichier.files[0]);
+    });
+
+    document.getElementById('genererQcm').addEventListener('click', lancerGeneration);
+    document.getElementById('fModele').addEventListener('change', dessinerEstimation);
+    document.getElementById('fNbQ').addEventListener('input', dessinerEstimation);
+    dessinerEstimation();
 
     document.getElementById('ajoutQ').addEventListener('click', function () {
       brouillon.questions.push({ t: '', o: ['', '', '', ''], r: 0, e: '' });

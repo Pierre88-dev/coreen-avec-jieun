@@ -166,7 +166,9 @@ create table if not exists generations (
   modele         text not null default '',
   tokens_entree  int  not null default 0,
   tokens_sortie  int  not null default 0,
-  cout_centimes  numeric(10,2) not null default 0,
+  cout_centimes  numeric(10,2) not null default 0,  -- centimes de DOLLAR : l'API
+                                                   -- facture en dollars, on n'invente
+                                                   -- pas de taux de change
   statut         text not null default 'ok',
   erreur         text not null default '',
   cree_le        timestamptz not null default now()
@@ -431,6 +433,51 @@ grant execute on function poser_question(text, uuid, text)             to anon, 
 -- L'ancienne signature à cinq arguments n'a plus lieu d'être.
 drop function if exists enregistrer_reponse(text, uuid, text, int[], int, int);
 drop function if exists enregistrer_reponse(text, uuid, int[], int, int);
+
+-- ------------------------------------------------------------- stockage ---
+-- Le dépôt des fichiers. Il est créé ICI, en SQL, et non à la main dans le
+-- tableau de bord : une base se rejoue, un clic ne se rejoue pas. Ce fichier
+-- reste ainsi la seule description complète de ce qu'il faut pour repartir.
+--
+-- Le bucket est PUBLIC en lecture, et ce n'est pas un oubli. Deux raisons :
+--   · l'élève ouvre son PDF sans être connecté — il n'a qu'une clé d'URL ;
+--   · l'API Claude va chercher le PDF elle-même, par son adresse, ce qui
+--     évite au site de le recopier octet par octet pour l'envoyer.
+-- Ce qui protège un document n'est donc pas un mot de passe mais son adresse :
+-- chaque fichier est rangé sous un uuid tiré au sort. Même modèle que la clé
+-- privée d'un élève. Un document vraiment confidentiel n'a rien à faire ici.
+--
+-- La taille est plafonnée à 32 Mo, qui est exactement la limite d'un envoi à
+-- l'API Claude : mieux vaut un refus au téléversement, quand Jieun a le
+-- fichier sous la main, qu'une erreur au moment de générer le QCM.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('documents', 'documents', true, 33554432,
+        array['application/pdf', 'image/png', 'image/jpeg', 'image/webp'])
+on conflict (id) do update set
+  public             = excluded.public,
+  file_size_limit    = excluded.file_size_limit,
+  allowed_mime_types = excluded.allowed_mime_types;
+
+-- La lecture par l'adresse publique ne consulte pas ces règles : c'est le
+-- drapeau « public » du bucket qui l'autorise. Ce que la règle ci-dessous
+-- décide, c'est qui peut ÉNUMÉRER le contenu du bucket — Jieun connectée, et
+-- personne d'autre. Sans quoi il suffirait de demander la liste pour obtenir
+-- toutes les adresses, et l'imprévisibilité des chemins ne servirait à rien.
+drop policy if exists documents_liste on storage.objects;
+create policy documents_liste on storage.objects
+  for select to authenticated using (bucket_id = 'documents');
+
+drop policy if exists documents_depot on storage.objects;
+create policy documents_depot on storage.objects
+  for insert to authenticated with check (bucket_id = 'documents');
+
+drop policy if exists documents_remplacement on storage.objects;
+create policy documents_remplacement on storage.objects
+  for update to authenticated using (bucket_id = 'documents');
+
+drop policy if exists documents_retrait on storage.objects;
+create policy documents_retrait on storage.objects
+  for delete to authenticated using (bucket_id = 'documents');
 
 -- ------------------------------------------------- contenu de démarrage ---
 

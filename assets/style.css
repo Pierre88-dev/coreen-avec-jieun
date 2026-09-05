@@ -439,9 +439,31 @@ input::placeholder,textarea::placeholder{color:#a8a49c;}
 }
 .x:hover{border-color:var(--rouge-b); color:var(--rouge); background:var(--rouge-cl);}
 
+/* Un fichier depose n'a pas d'adresse a saisir : elle est decidee par la base.
+   On montre a la place ce qui compte pour decider d'une generation — le type,
+   le nombre de pages, le poids. */
+.jeton-doc{
+  display:flex; align-items:center; min-width:0; padding:0 14px;
+  background:var(--doux2); border-radius:var(--r); color:var(--gris);
+  font-size:.6875rem; font-weight:700; letter-spacing:.08em;
+  text-transform:uppercase; white-space:nowrap; overflow:hidden;
+  text-overflow:ellipsis; box-shadow:inset 0 0 0 1px var(--ligne);
+}
+.jeton-doc:hover{color:var(--vert); box-shadow:inset 0 0 0 1px var(--vert);}
+.bloc-form .duo .bt{width:100%;}
+.aide.err{color:var(--rouge-tx); font-weight:600;}
+
 /* --- QCM --- */
 .atelier-qcm{display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:16px;}
 .cpt{font-size:var(--t-s); color:var(--gris);}
+.select.mince{width:auto; margin:0; padding:9px 12px; font-size:var(--t-m);}
+.nb{display:flex; align-items:center; gap:8px; font-size:var(--t-s); color:var(--gris);}
+.nb input{width:64px; margin:0; padding:9px 10px; text-align:center;}
+/* Le copier-coller reste, en second rang : c'est le filet quand la
+   generation echoue ou que le site tourne en local. */
+.atelier-qcm.repli{
+  margin-top:20px; padding-top:18px; border-top:1px solid var(--ligne);
+}
 #zoneColle{margin-bottom:20px;}
 #zoneColle[hidden]{display:none;}
 #zoneColle textarea{font-family:ui-monospace,Menlo,Consolas,monospace; font-size:.8125rem; margin-bottom:12px;}

@@ -1,13 +1,28 @@
 # Mise en ligne — ce que Pierre doit faire
 
-**Les trois étapes sont faites.** Cette page ne sert plus qu'à retrouver
-comment, et à refaire le chemin si un jour il faut repartir de zéro.
+**Les trois étapes de mise en ligne sont faites.** Cette page sert à
+retrouver comment, et à refaire le chemin si un jour il faut repartir de zéro.
+
+**Deux réglages restent à ta main**, et le site te le dit lui-même tant qu'ils
+ne sont pas faits : le SQL du dépôt de fichiers (§ 4) et la clé d'API dans
+Cloudflare (§ 5).
 
 ---
 
 ## 1. GitHub — fait le 3 septembre 2026 ✅
 
-Dépôt privé `Pierre88-dev/coreen-avec-jieun`, poussé, `origin` enregistré.
+Dépôt `Pierre88-dev/coreen-avec-jieun`, poussé, `origin` enregistré.
+
+**Il est public**, contrairement à ce qui était écrit ici jusqu'au 5 septembre
+2026 — vérifié ce jour-là sans être connecté, la page du dépôt répond à tout le
+monde. Rien de secret ne s'y trouve : la clé Supabase du site est *publishable*
+et finit de toute façon dans la page, les clés privées des élèves sont tirées
+au sort dans la base et ne figurent dans aucun fichier, et la clé d'API Claude
+vit dans Cloudflare (§ 5), jamais ici. Mais le schéma de la base et l'adresse
+du projet Supabase sont, eux, lisibles par n'importe qui. Si tu préfères
+fermer : page du dépôt → **Settings** → tout en bas, *Danger Zone* → **Change
+repository visibility** → *Make private*. Le déploiement Cloudflare et le
+réveil GitHub continuent de fonctionner sur un dépôt privé.
 L'authentification GitHub est mémorisée sur la machine : **les push suivants
 peuvent être lancés par l'agent**, plus aucune fenêtre de connexion.
 
@@ -95,6 +110,90 @@ privée de l'élève.
 l'ancienne `service_role`) du même écran. Celles-là contournent toutes les
 protections. Si tu en colles une quelque part par erreur, révoque-la depuis cet
 écran et crées-en une autre.
+
+---
+
+## 4. Le dépôt de fichiers — à faire
+
+Jusqu'ici, joindre un document à une leçon voulait dire **taper son chemin à la
+main**. Pour téléverser un PDF depuis l'ordinateur, il faut un bucket Supabase
+Storage, et `schema.sql` sait maintenant le créer.
+
+C'est **le même geste que l'étape 3** : **SQL Editor** → **New query** →
+coller tout `supabase/schema-a-coller.sql` → **Run**. Le fichier est rejouable :
+le repasser en entier ne détruit rien, il ajoute simplement ce qui manque.
+Message attendu : « Success. No rows returned ».
+
+Pour vérifier : menu de gauche → **Storage**. Un bucket **documents** doit
+apparaître, marqué *Public*. Vérifié le 5 septembre 2026 : il n'existe pas
+encore.
+
+Tant que ce n'est pas fait, **rien d'autre ne casse** : le site tourne, les
+leçons se rédigent, les élèves passent leurs QCM. Seul le bouton « Téléverser
+un fichier » échoue, et le champ de chemin reste disponible comme avant.
+
+Trois choses que ce SQL décide, et qu'il vaut mieux savoir :
+
+- **Le bucket est public en lecture.** Ce n'est pas un oubli : l'élève ouvre son
+  PDF sans compte, et l'API Claude va chercher le fichier elle-même par son
+  adresse. Ce qui protège un document, c'est donc son adresse — chaque fichier
+  est rangé sous un identifiant tiré au sort, comme la clé privée d'un élève.
+  **Un document vraiment confidentiel n'a rien à faire là.**
+- **Personne ne peut lister le bucket** sans être connecté : deviner une adresse
+  reste la seule voie, et elle est impraticable.
+- **32 Mo par fichier**, qui est exactement la limite d'un envoi à l'API. Mieux
+  vaut un refus au téléversement, quand tu as le fichier sous la main, qu'une
+  erreur au moment de générer.
+
+## 5. La clé d'API Claude — à faire
+
+Le bouton **« Générer le QCM »** appelle l'API Claude. La clé est payante à
+l'usage : elle ne peut vivre ni dans la page, ni dans le dépôt, qui est servi
+publiquement. Elle vit dans **Cloudflare**, et seule la fonction serveur
+`functions/api/qcm.js` la voit.
+
+**Tant que ces variables ne sont pas réglées, le bouton répond par une phrase
+qui dit exactement ce qui manque.** Rien ne casse ; la génération est
+simplement indisponible.
+
+1. **La clé** — sur `console.anthropic.com` → **API keys** → *Create key*. Elle
+   commence par `sk-ant-`. Elle ne s'affiche **qu'une fois**, range-la dans ton
+   gestionnaire de mots de passe au moment où tu la vois.
+2. **Le crédit** — même console, **Billing**. Sans crédit, l'API refuse et le
+   site te le dira en toutes lettres. Quelques euros couvrent des dizaines de
+   QCM.
+3. **Dans Cloudflare** — `dash.cloudflare.com` → **Workers & Pages** →
+   `coreen-avec-jieun` → **Settings** → **Variables and Secrets** →
+   *Add variable*, pour l'environnement **Production** :
+
+   | Nom | Type | Valeur |
+   | --- | --- | --- |
+   | `CLE_API_CLAUDE` | **Secret** | la clé `sk-ant-…` |
+   | `EMAILS_PROF` | Texte | l'adresse Naver de Jieun. Plusieurs adresses se séparent par une virgule |
+
+   `CLE_API_CLAUDE` en **Secret**, pas en texte : une fois enregistrée elle
+   n'est plus réaffichée, y compris pour toi.
+
+4. **Redéploie.** Une variable ajoutée ne s'applique pas au déploiement en
+   cours : onglet **Deployments** → sur le dernier, *Retry deployment*. Un
+   `git push` fait la même chose.
+
+`EMAILS_PROF` est ce qui empêche n'importe qui de faire tourner ta facture : la
+fonction demande à Supabase à qui appartient la session, et refuse toute
+adresse absente de cette liste. **Laissée vide, personne ne génère** — une
+variable oubliée doit bloquer, pas ouvrir la porte.
+
+### Ce que ça coûte
+
+L'espace professeur annonce une estimation **avant** de lancer, à partir du
+nombre de pages du PDF, puis le **coût réel** rendu par l'API une fois les
+questions écrites. Chaque appel est aussi rangé dans la table `generations` :
+modèle, tokens, coût. Aucune facture ne devrait donc être une surprise.
+
+Ordre de grandeur avec **Opus 5** : environ **26 centimes de dollar** pour un
+QCM de 12 questions sur un document de 12 pages. **Sonnet 5** coûte 2,5 fois
+moins. Le choix est dans un menu à côté du bouton, à chaque génération — c'est
+Jieun qui tranchera, elle seule sait si une question sur les 받침 est juste.
 
 ---
 

@@ -125,6 +125,7 @@ create table if not exists generations (
   tokens_entree  int  not null default 0,
   tokens_sortie  int  not null default 0,
   cout_centimes  numeric(10,2) not null default 0,
+
   statut         text not null default 'ok',
   erreur         text not null default '',
   cree_le        timestamptz not null default now()
@@ -365,6 +366,30 @@ grant execute on function poser_question(text, uuid, text)             to anon, 
 
 drop function if exists enregistrer_reponse(text, uuid, text, int[], int, int);
 drop function if exists enregistrer_reponse(text, uuid, int[], int, int);
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('documents', 'documents', true, 33554432,
+        array['application/pdf', 'image/png', 'image/jpeg', 'image/webp'])
+on conflict (id) do update set
+  public             = excluded.public,
+  file_size_limit    = excluded.file_size_limit,
+  allowed_mime_types = excluded.allowed_mime_types;
+
+drop policy if exists documents_liste on storage.objects;
+create policy documents_liste on storage.objects
+  for select to authenticated using (bucket_id = 'documents');
+
+drop policy if exists documents_depot on storage.objects;
+create policy documents_depot on storage.objects
+  for insert to authenticated with check (bucket_id = 'documents');
+
+drop policy if exists documents_remplacement on storage.objects;
+create policy documents_remplacement on storage.objects
+  for update to authenticated using (bucket_id = 'documents');
+
+drop policy if exists documents_retrait on storage.objects;
+create policy documents_retrait on storage.objects
+  for delete to authenticated using (bucket_id = 'documents');
 
 insert into eleves (id, prenom, prenom_ko, cle) values
   ('marie',    'Marie',    '마리',     'marie-'    || encode(gen_random_bytes(5), 'hex')),
