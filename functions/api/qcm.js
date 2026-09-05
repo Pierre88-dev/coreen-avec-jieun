@@ -284,6 +284,16 @@ async function journaliser(urlBase, cleBase, jeton, ligne) {
 const SYSTEME =
   'Tu écris des QCM de coréen pour des élèves francophones débutants, à ' +
   'partir des documents de cours qu’on te donne.\n\n' +
+  'LA LANGUE DE TRAVAIL EST LE FRANÇAIS. Les énoncés et les explications ' +
+  's’écrivent en français, toujours, même quand le document de cours est ' +
+  'entièrement en coréen — et il l’est souvent, puisqu’il vient d’une ' +
+  'professeure coréenne. Une élève débutante ne peut pas lire une question ' +
+  'rédigée en coréen : elle n’apprend alors rien et ne peut même pas dire ce ' +
+  'qu’elle n’a pas compris.\n\n' +
+  'Le coréen ne figure que là où il est la matière même : les formes, les mots ' +
+  'et les phrases sur lesquels porte la question. Une proposition de réponse ' +
+  'peut donc être entièrement en hangul — c’est normal et souhaitable. Un ' +
+  'énoncé ou une explication, jamais.\n\n' +
   'Ce qui compte plus que tout : une question fausse enseigne une erreur, et ' +
   'c’est la professeure qui devra la rattraper en cours. Dans le doute, écris ' +
   'une question plus simple mais dont tu es sûr, jamais une question ' +
@@ -309,6 +319,9 @@ function consigne(nombre, portee, recap) {
   t += 'Écris ' + nombre + ' question' + (nombre > 1 ? 's' : '') +
        ' à choix multiple.\n' +
        'Règles :\n' +
+       '- **énoncés et explications en français**, quelle que soit la langue ' +
+       'du document. Seul le coréen sur lequel porte la question s’écrit en ' +
+       'hangul, tel quel, sans translittération ;\n' +
        '- exactement 4 propositions par question, une seule juste ;\n' +
        '- fais varier la position de la bonne réponse ;\n' +
        '- les mauvaises propositions doivent être plausibles, pas absurdes : ' +

@@ -619,6 +619,10 @@
                 'ignore ce qui sort de cette portion, même si le document en parle.\n\n' : '') +
       'Fabrique 12 questions à choix multiple qui testent précisément ce contenu.\n' +
       'Règles :\n' +
+      '- écris les énoncés et les explications EN FRANÇAIS, même si le cours ' +
+      'est en coréen : une élève débutante ne peut pas lire une question ' +
+      'rédigée en hangul. Seul le coréen sur lequel porte la question s’écrit ' +
+      'en hangul ;\n' +
       '- exactement 4 propositions par question, une seule juste ;\n' +
       '- fais varier la position de la bonne réponse ;\n' +
       '- les mauvaises propositions doivent être plausibles, pas absurdes ;\n' +
