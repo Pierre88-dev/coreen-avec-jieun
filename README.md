@@ -202,5 +202,7 @@ l'historique.
 
 ## Mise en ligne
 
-Cloudflare Pages, branché sur un dépôt GitHub privé. Aucune configuration de
-build : site statique, publié tel quel. Voir `MISE-EN-LIGNE.md`.
+Cloudflare Pages, branché sur le dépôt GitHub, qui est **public**. Aucune
+configuration de build : site statique, publié tel quel. Rien de secret ne se
+trouve dans le dépôt — mais le schéma de la base y est lisible par tous. Voir
+`MISE-EN-LIGNE.md`.
