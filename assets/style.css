@@ -545,5 +545,5 @@ input::placeholder,textarea::placeholder{color:#a8a49c;}
 }
 
 /* display:flex ecrase l-attribut hidden : on le retablit */
-.bandeau[hidden],.res[hidden]{display:none;}
+.bandeau[hidden],.res[hidden],.qcm[hidden]{display:none;}
 #connexion[hidden],#atelier[hidden]{display:none;}

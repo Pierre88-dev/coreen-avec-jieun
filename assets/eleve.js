@@ -259,7 +259,9 @@
   function dessinerListe() {
     elListe.innerHTML = lecons.map(function (l) {
       var s = lireScore(l), n = l.questions.length;
-      var pastille = s === null
+      var pastille = !n
+        ? '<span class="sc">à lire</span>'
+        : s === null
         ? '<span class="sc neuf">à faire</span>'
         : '<span class="sc' + (s / n < .6 ? ' bas' : '') + '">' + s + '/' + n + '</span>';
       return '<li><button type="button" data-id="' + l.id + '">' +
@@ -323,6 +325,14 @@
 
   function dessinerQcm() {
     var qs = courante.questions, n = qs.length;
+
+    /* Une lecon peut n'avoir aucune question : Jieun publie parfois un cours
+       qui se lit, sans QCM. Sans ce garde-fou la carte s'affichait quand meme,
+       vide, avec un "Score : 0 sur 0" et un bouton Recommencer. */
+    var carteVide = document.getElementById('carteQcm');
+    if (!n) { carteVide.hidden = true; carteVide.innerHTML = ''; return; }
+    carteVide.hidden = false;
+
     var repondues = etat.rep.filter(function (r) { return r !== null; }).length;
     var fini = repondues === n;
 

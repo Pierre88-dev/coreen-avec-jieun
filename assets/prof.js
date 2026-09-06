@@ -453,8 +453,10 @@
       qs.length ? qs.length + (qs.length > 1 ? ' questions' : ' question') : '';
 
     if (!qs.length) {
-      z.innerHTML = '<p class="aide">Aucune question pour l’instant. Copie la consigne, ' +
-        'colle-la dans Claude avec ton récapitulatif, puis rapporte sa réponse ici.</p>';
+      z.innerHTML = '<p class="aide">Aucune question. Une leçon se publie très bien ' +
+        'sans QCM : l’élève lit le récapitulatif et ses documents, rien de plus. ' +
+        'Pour en ajouter un, génère-le depuis le document ci-dessus, ou copie la ' +
+        'consigne et rapporte ici la réponse de Claude.</p>';
       return;
     }
 
@@ -770,7 +772,10 @@
     if (!brouillon.date) return 'Il manque la date.';
     if (!brouillon.publiee) return null;
     if (!brouillon.recap.trim()) return 'Une leçon publiée a besoin d’un récapitulatif.';
-    if (!brouillon.questions.length) return 'Une leçon publiée a besoin d’au moins une question.';
+    /* Pas de QCM exigé : toutes les leçons n'en méritent pas un, et en réclamer
+       un forcerait à en générer un pour rien — payant, en plus. Une leçon sans
+       question se publie et se lit ; c'est le récapitulatif et les documents qui
+       en font la valeur. Les questions écrites, elles, restent vérifiées. */
     for (var i = 0; i < brouillon.questions.length; i++) {
       var q = brouillon.questions[i];
       if (!q.t.trim()) return 'Question ' + (i + 1) + ' : l’énoncé est vide.';
